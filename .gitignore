@@ -1,0 +1,6 @@
+.vs/ 
+*.user
+*.suo
+credentials.json
+appsettings.Development.json
+**/wwwroot/libs/*

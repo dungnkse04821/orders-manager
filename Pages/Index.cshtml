@@ -1,0 +1,50 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Danh sách đơn hàng</h1>
+    <a asp-page="Create" class="btn btn-primary">Thêm đơn mới</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Ngày</th>
+                <th>Mã Code</th>
+                <th>Sản phẩm</th>
+                <th>Giá bán</th>
+                <th>SL</th>
+                <th>Tổng tiền</th>
+                <th>Khách hàng</th>
+                <th>Lợi nhuận</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Orders)
+            {
+                <tr>
+                    <td>@(item.OrderDate?.ToString("dd/MM/yyyy"))</td>
+                    <td>@item.Code</td>
+                    <td>
+                        <span class="badge bg-info text-dark">@item.Source</span>
+                        @item.ProductName
+                        <small class="text-muted">(@item.Color - @item.Size)</small>
+                    </td>
+                    <td class="text-end">@item.SellingPrice.ToString("N0")</td>
+                    <td class="text-center">@item.Quantity</td>
+                    <td class="text-end fw-bold">@item.TotalAmount.ToString("N0")</td>
+                    <td>@item.CustomerName</td>
+                    <td class="text-end text-success">@item.Profit.ToString("N0")</td>
+                    <td>
+                        <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Sửa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
