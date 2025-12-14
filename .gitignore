@@ -3,4 +3,5 @@
 *.suo
 credentials.json
 appsettings.Development.json
-**/wwwroot/libs/*
+**/wwwroot/lib/*
+wwwroot/lib/
