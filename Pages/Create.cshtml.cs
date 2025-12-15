@@ -30,6 +30,7 @@ namespace OrdersManager.Pages
 
         public IActionResult OnPost()
         {
+            ModelState.Remove("Order.Id");
             if (!ModelState.IsValid)
             {
                 PopulateDropdowns(); // Load lại dropdown nếu lỗi validate
@@ -49,7 +50,9 @@ namespace OrdersManager.Pages
                 new SelectListItem("Trung", "Trung"),
                 new SelectListItem("Hàn", "Hàn"),
                 new SelectListItem("Nhật", "Nhật"),
-                new SelectListItem("Thái", "Thái")
+                new SelectListItem("Thái", "Thái"),
+                new SelectListItem("Mỹ", "Mỹ"),
+                new SelectListItem("Tây Ban Nha", "Tây Ban Nha"),
             };
 
             CategoryOptions = new List<SelectListItem> {
