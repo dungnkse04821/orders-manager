@@ -53,6 +53,10 @@
             "Google.Apis.Sheets.v4": {
               "target": "Package",
               "version": "[1.72.0.3966, )"
+            },
+            "Microsoft.Web.LibraryManager.Build": {
+              "target": "Package",
+              "version": "[3.0.71, )"
             }
           },
           "imports": [
