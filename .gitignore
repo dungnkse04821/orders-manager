@@ -5,3 +5,4 @@ credentials.json
 appsettings.Development.json
 **/wwwroot/lib/*
 wwwroot/lib/
+obj/Debug
