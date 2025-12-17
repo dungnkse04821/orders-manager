@@ -1,0 +1,43 @@
+﻿@page
+@model OrdersManager.Pages.Customers.IndexModel
+@{
+    ViewData["Title"] = "Thống kê khách hàng";
+}
+
+<h2 class="mb-4">Danh sách khách hàng (Từ đơn hàng)</h2>
+
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover table-striped align-middle">
+        <thead class="bg-primary text-white">
+            <tr>
+                <th>Tên Khách Hàng</th>
+                <th class="text-center">Số đơn</th>
+                <th class="text-end">Tổng tiền đã mua</th>
+                <th class="text-center">Mua gần nhất</th>
+                <th class="text-center">Chi tiết</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.CustomerStats)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@item.CustomerName</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary rounded-pill">@item.OrderCount</span>
+                    </td>
+                    <td class="text-end fw-bold text-success">
+                        @item.TotalSpent.ToString("N0")
+                    </td>
+                    <td class="text-center">
+                        @(item.LastOrderDate?.ToString("dd/MM/yyyy"))
+                    </td>
+                    <td class="text-center">
+                        <a asp-page="./Details" asp-route-name="@item.CustomerName" class="btn btn-sm btn-info text-white">
+                            Xem lịch sử
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

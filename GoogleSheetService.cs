@@ -132,9 +132,8 @@ namespace OrdersManager
                 arrDate,            // Q
                 payDate,            // R
                 order.ImportPrice,  // S
-                "=S:S*K:K",         // T (Formula: Giá Nhập * SL)
-                "=T:T-L:L"          // U (Formula: Thành tiền nhập - Tổng tiền bán? Check lại logic lãi của bạn)
-                                    // Lưu ý: Bạn nên check lại logic lãi. Thường là (Tổng tiền bán - Thành tiền nhập) => "=L:L-T:T"
+                "=R:R*K:K",         // T (Formula: Giá Nhập * SL)
+                "=L:L-T:T"          // U (Formula: Tổng tiền bán - Thành tiền nhập
             };
 
             valueRange.Values = new List<IList<object>> { objectList };

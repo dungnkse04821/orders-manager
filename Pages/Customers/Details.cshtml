@@ -1,0 +1,62 @@
+﻿@page
+@model OrdersManager.Pages.Customers.DetailsModel
+@{
+    ViewData["Title"] = "Lịch sử mua hàng";
+}
+
+<div class="mb-3">
+    <a asp-page="./Index" class="btn btn-outline-secondary">&larr; Quay lại danh sách</a>
+</div>
+
+<div class="card mb-4 border-primary">
+    <div class="card-body bg-light">
+        <h3 class="card-title text-primary">Khách hàng: @Model.CustomerName</h3>
+        <p class="card-text fs-5">
+            Tổng chi tiêu: <span class="fw-bold text-success">@Model.TotalSpent.ToString("N0")</span>
+            <span class="mx-2">|</span>
+            Tổng số đơn: <strong>@Model.CustomerOrders.Count</strong>
+        </p>
+    </div>
+</div>
+
+<h4>Lịch sử đơn hàng</h4>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Ngày đặt</th>
+                <th>Mã Code</th>
+                <th>Sản phẩm</th>
+                <th>SL</th>
+                <th>Giá trị</th>
+                <th>Trạng thái thanh toán</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.CustomerOrders)
+            {
+                <tr>
+                    <td>@(order.OrderDate?.ToString("dd/MM/yyyy"))</td>
+                    <td>@order.Code</td>
+                    <td>
+                        @order.ProductName
+                        <small class="text-muted">(@order.Color - @order.Size)</small>
+                    </td>
+                    <td class="text-center">@order.Quantity</td>
+                    <td class="text-end">@order.TotalAmount.ToString("N0")</td>
+                    <td>
+                        @if (order.PaymentDate.HasValue)
+                        {
+                            <span class="badge bg-success">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                            <small class="d-block text-muted">Còn lại: @order.RemainingAmount.ToString("N0")</small>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

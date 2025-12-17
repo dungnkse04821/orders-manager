@@ -20,6 +20,7 @@ namespace OrdersManager.Pages
         // Danh sách dữ liệu cho Dropdown
         public List<SelectListItem> SourceOptions { get; set; }
         public List<SelectListItem> CategoryOptions { get; set; }
+        public List<SelectListItem> WarehouseOptions { get; set; }
 
         public void OnGet()
         {
@@ -55,11 +56,29 @@ namespace OrdersManager.Pages
                 new SelectListItem("Tây Ban Nha", "Tây Ban Nha"),
             };
 
-            CategoryOptions = new List<SelectListItem> {
+            WarehouseOptions = new List<SelectListItem> {
+                new SelectListItem("Shopee", "Shopee")
+            };
+
+            CategoryOptions = new List<SelectListItem>
+            {
                 new SelectListItem("Quần nữ", "Quần nữ"),
                 new SelectListItem("Áo nữ", "Áo nữ"),
                 new SelectListItem("Váy nữ", "Váy nữ"),
-                new SelectListItem("Túi ví", "Túi ví")
+                new SelectListItem("Quần nam", "Quần nam"),
+                new SelectListItem("Áo nam", "Áo nam"),
+                new SelectListItem("Giày dép nữ", "Giày dép nữ"),
+                new SelectListItem("Giày dép nam", "Giày dép nam"),
+                new SelectListItem("Túi ví nữ", "Túi ví nữ"),
+                new SelectListItem("Túi ví nam", "Túi ví nam"),
+                new SelectListItem("Phụ kiện nữ", "Phụ kiện nữ"),
+                new SelectListItem("Phụ kiện nam", "Phụ kiện nam"),
+                new SelectListItem("Quần áo trẻ em", "Quần áo trẻ em"),
+                new SelectListItem("Giày dép trẻ em", "Giày dép trẻ em"),
+                new SelectListItem("Phụ kiện trẻ em", "Phụ kiện trẻ em"),
+                new SelectListItem("Thuốc", "Thuốc"),
+                new SelectListItem("Mỹ phẩm", "Mỹ phẩm"),
+                new SelectListItem("Đồ gia đình", "Đồ gia đình")
             };
         }
     }

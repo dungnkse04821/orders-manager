@@ -94,7 +94,7 @@ namespace OrdersManager.Models
         public decimal TotalImportCost { get; set; }
 
         // Cột U: Lãi (Công thức) - Chỉ đọc
-        [DisplayName("Lợi nhuận")]
+        [DisplayName("Lãi")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal Profit { get; set; }
     }

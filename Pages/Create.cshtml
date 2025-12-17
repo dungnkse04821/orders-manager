@@ -11,30 +11,34 @@
     <div class="row">
         <div class="col-md-6">
             <h5 class="text-primary">Thông tin sản phẩm</h5>
-
-            <div class="mb-3">
-                <label asp-for="Order.OrderDate" class="form-label"></label>
-                <input asp-for="Order.OrderDate" class="form-control" type="date" />
-            </div>
-
             <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Order.OrderDate" class="form-label"></label>
+                    <input asp-for="Order.OrderDate" class="form-control" type="date" />
+                </div>
                 <div class="col-md-6 mb-3">
                     <label asp-for="Order.Source" class="form-label"></label>
                     <select asp-for="Order.Source" asp-items="Model.SourceOptions" class="form-select">
                         <option value="">-- Chọn nguồn --</option>
                     </select>
                 </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Order.Warehouse" class="form-label"></label>
+                    <select asp-for="Order.Warehouse" asp-items="Model.WarehouseOptions" class="form-select">
+                        <option value="">-- Chọn kho --</option>
+                    </select>
+                </div>
+
                 <div class="col-md-6 mb-3">
                     <label asp-for="Order.Category" class="form-label"></label>
                     <select asp-for="Order.Category" asp-items="Model.CategoryOptions" class="form-select">
                         <option value="">-- Chọn loại --</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Order.Warehouse" class="form-label"></label>
-                <input asp-for="Order.Warehouse" class="form-control" placeholder="Kho" />
             </div>
 
             <div class="mb-3">
@@ -62,12 +66,17 @@
         <div class="col-md-6">
             <h5 class="text-success">Tài chính & Khách hàng</h5>
 
+            <div class="mb-3">
+                <label asp-for="Order.CustomerName" class="form-label"></label>
+                <input asp-for="Order.CustomerName" class="form-control" placeholder="Tên khách hàng..." />
+            </div>
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Order.SellingPrice" class="form-label"></label>
                     <div class="input-group">
                         <input asp-for="Order.SellingPrice" class="form-control" type="number" />
-                        <span class="input-group-text">k</span>
+                        <span class="input-group-text">1000đ</span>
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -76,24 +85,25 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Order.CustomerName" class="form-label"></label>
-                <input asp-for="Order.CustomerName" class="form-control" placeholder="Tên khách hàng..." />
-            </div>
-
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Order.Deposit" class="form-label"></label>
-                    <input asp-for="Order.Deposit" class="form-control" type="number" />
+                    <div class="input-group">
+                        <input asp-for="Order.Deposit" class="form-control" type="number" />
+                        <span class="input-group-text">1000đ</span>
+                    </div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label asp-for="Order.Discount" class="form-label"></label>
-                    <input asp-for="Order.Discount" class="form-control" type="number" />
+                    <div class="input-group">
+                        <input asp-for="Order.Discount" class="form-control" type="number" />
+                        <span class="input-group-text">1000đ</span>
+                    </div>
                 </div>
             </div>
 
             <hr />
-            <h5 class="text-danger">Giá vốn (Ẩn nếu cần)</h5>
+            <h5 class="text-success">Giá vốn</h5>
             <div class="mb-3">
                 <label asp-for="Order.ImportPrice" class="form-label"></label>
                 <div class="input-group">
