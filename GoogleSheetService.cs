@@ -192,5 +192,35 @@ namespace OrdersManager
             }
             return -1;
         }
+
+        // 1. Hàm dùng chung để đọc 1 cột dữ liệu
+        public List<string> GetConfigData(string sheetName)
+        {
+            var range = $"{sheetName}!A2:A"; // Chỉ đọc cột A
+            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
+            var response = request.Execute();
+            var values = response.Values;
+
+            var list = new List<string>();
+            if (values != null && values.Count > 0)
+            {
+                foreach (var row in values)
+                {
+                    if (row.Count > 0) list.Add(row[0].ToString());
+                }
+            }
+            return list;
+        }
+
+        // 2. Hàm dùng chung để thêm dữ liệu mới vào cột A
+        public void AddConfigData(string sheetName, string value)
+        {
+            var valueRange = new ValueRange();
+            valueRange.Values = new List<IList<object>> { new List<object> { value } };
+
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{sheetName}!A:A");
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            appendRequest.Execute();
+        }
     }
 }

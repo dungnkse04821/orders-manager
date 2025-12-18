@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using OrdersManager.Models;
 
 namespace OrdersManager.Pages
@@ -18,15 +17,15 @@ namespace OrdersManager.Pages
         public Order Order { get; set; } = new Order();
 
         // Danh sách dữ liệu cho Dropdown
-        public List<SelectListItem> SourceOptions { get; set; }
-        public List<SelectListItem> CategoryOptions { get; set; }
-        public List<SelectListItem> WarehouseOptions { get; set; }
+        public List<string> Sources { get; set; }
+        public List<string> Warehouses { get; set; }
+        public List<string> Categories { get; set; }
 
         public void OnGet()
         {
             // Khởi tạo giá trị mặc định
             Order.OrderDate = DateTime.Now;
-            PopulateDropdowns();
+            LoadDropdowns();
         }
 
         public IActionResult OnPost()
@@ -34,7 +33,7 @@ namespace OrdersManager.Pages
             ModelState.Remove("Order.Id");
             if (!ModelState.IsValid)
             {
-                PopulateDropdowns(); // Load lại dropdown nếu lỗi validate
+                LoadDropdowns();
                 return Page();
             }
 
@@ -45,41 +44,32 @@ namespace OrdersManager.Pages
             return RedirectToPage("./Index");
         }
 
-        private void PopulateDropdowns()
+        // --- API XỬ LÝ AJAX THÊM MỚI ---
+        // type: "Source", "Warehouse", hoặc "Category"
+        public IActionResult OnPostAddAttribute(string type, string value)
         {
-            SourceOptions = new List<SelectListItem> {
-                new SelectListItem("Trung", "Trung"),
-                new SelectListItem("Hàn", "Hàn"),
-                new SelectListItem("Nhật", "Nhật"),
-                new SelectListItem("Thái", "Thái"),
-                new SelectListItem("Mỹ", "Mỹ"),
-                new SelectListItem("Tây Ban Nha", "Tây Ban Nha"),
-            };
-
-            WarehouseOptions = new List<SelectListItem> {
-                new SelectListItem("Shopee", "Shopee")
-            };
-
-            CategoryOptions = new List<SelectListItem>
+            string sheetName = "";
+            switch (type)
             {
-                new SelectListItem("Quần nữ", "Quần nữ"),
-                new SelectListItem("Áo nữ", "Áo nữ"),
-                new SelectListItem("Váy nữ", "Váy nữ"),
-                new SelectListItem("Quần nam", "Quần nam"),
-                new SelectListItem("Áo nam", "Áo nam"),
-                new SelectListItem("Giày dép nữ", "Giày dép nữ"),
-                new SelectListItem("Giày dép nam", "Giày dép nam"),
-                new SelectListItem("Túi ví nữ", "Túi ví nữ"),
-                new SelectListItem("Túi ví nam", "Túi ví nam"),
-                new SelectListItem("Phụ kiện nữ", "Phụ kiện nữ"),
-                new SelectListItem("Phụ kiện nam", "Phụ kiện nam"),
-                new SelectListItem("Quần áo trẻ em", "Quần áo trẻ em"),
-                new SelectListItem("Giày dép trẻ em", "Giày dép trẻ em"),
-                new SelectListItem("Phụ kiện trẻ em", "Phụ kiện trẻ em"),
-                new SelectListItem("Thuốc", "Thuốc"),
-                new SelectListItem("Mỹ phẩm", "Mỹ phẩm"),
-                new SelectListItem("Đồ gia đình", "Đồ gia đình")
-            };
+                case "Source": sheetName = "Config_NguonHang"; break;
+                case "Warehouse": sheetName = "Config_Kho"; break;
+                case "Category": sheetName = "Config_LoaiHang"; break;
+            }
+
+            if (!string.IsNullOrEmpty(sheetName) && !string.IsNullOrEmpty(value))
+            {
+                _service.AddConfigData(sheetName, value);
+                return new JsonResult(new { success = true });
+            }
+            return new JsonResult(new { success = false });
         }
+
+        private void LoadDropdowns()
+        {
+            Sources = _service.GetConfigData("Config_NguonHang");
+            Warehouses = _service.GetConfigData("Config_Kho");
+            Categories = _service.GetConfigData("Config_LoaiHang");
+        }
+
     }
 }

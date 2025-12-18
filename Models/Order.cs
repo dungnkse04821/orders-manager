@@ -22,7 +22,7 @@ namespace OrdersManager.Models
 
         // Cột E: Code
         [DisplayName("Mã vận đơn/Code")]
-        public string Code { get; set; }
+        public string Code { get; set; } = string.Empty;
 
         // Cột F: Loại (Quần, Áo...)
         [DisplayName("Loại sản phẩm")]
