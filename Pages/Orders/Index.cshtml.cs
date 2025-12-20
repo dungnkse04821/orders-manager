@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OrdersManager.Models;
 
-namespace OrdersManager.Pages
+namespace OrdersManager.Pages.Orders
 {
     public class IndexModel : PageModel
     {

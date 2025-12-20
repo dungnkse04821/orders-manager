@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "/"
 @model IndexModel
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
@@ -38,9 +38,21 @@
                     <td class="text-center">@item.Quantity</td>
                     <td class="text-end fw-bold">@item.TotalAmount.ToString("N0")</td>
                     <td class="text-end text-success">@item.Profit.ToString("N0")</td>
-                    <td>
-                        <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Sửa</a>
-                        <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Xóa</a>
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa đơn này không?');">
+
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             }

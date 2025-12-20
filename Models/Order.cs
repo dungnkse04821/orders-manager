@@ -41,7 +41,7 @@ namespace OrdersManager.Models
         public string Size { get; set; }
 
         // Cột J: Giá bán (1000đ)
-        [DisplayName("Giá bán (k)")]
+        [DisplayName("Giá bán (1000đ)")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal SellingPrice { get; set; }
 
@@ -84,7 +84,7 @@ namespace OrdersManager.Models
         public DateTime? PaymentDate { get; set; }
 
         // Cột S: Đơn giá nhập
-        [DisplayName("Giá nhập (k)")]
+        [DisplayName("Giá nhập (1000đ)")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal ImportPrice { get; set; }
 

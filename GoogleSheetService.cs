@@ -142,23 +142,6 @@ namespace OrdersManager
             appendRequest.Execute();
         }
 
-        // 3. UPDATE (Sửa)
-        public void Update(Order student)
-        {
-            // Bước khó nhất của Sheet: Phải tìm ra dòng (Row Index) dựa trên ID
-            int rowId = FindRowId(student.Id);
-            if (rowId == -1) return;
-
-            var range = $"{SheetName}!A{rowId}:C{rowId}";
-            var valueRange = new ValueRange();
-            var objectList = new List<object>() { };
-            valueRange.Values = new List<IList<object>> { objectList };
-
-            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            updateRequest.Execute();
-        }
-
         // 4. DELETE (Xóa)
         public void Delete(string id)
         {
@@ -172,25 +155,69 @@ namespace OrdersManager
             clearRequest.Execute();
         }
 
-        // Helper tìm dòng
+        // 1. Hàm tìm dòng dựa trên ID (Helper)
         private int FindRowId(string id)
         {
-            var list = GetAll();
-            // Cộng thêm 1 hoặc 2 tùy vào việc bạn có header hay không. 
-            // Nếu GetAll đã bỏ header thì index trong list bắt đầu từ 0, nhưng trong Sheet bắt đầu từ 1.
-            // Logic đơn giản: Loop qua GetAll để tìm index + offset.
-            // Cách tốt hơn: Đọc cột A để tìm index trực tiếp sẽ nhanh hơn.
+            // Đọc cột A (chứa ID) để tìm dòng
+            var range = $"{SheetName}!A:A";
+            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
+            var response = request.Execute();
+            var values = response.Values;
 
-            // Ở đây mình làm cách đơn giản nhất cho người mới:
-            var allData = service.Spreadsheets.Values.Get(SpreadsheetId, $"{SheetName}!A:A").Execute().Values;
-            for (int i = 0; i < allData.Count; i++)
+            if (values != null)
             {
-                if (allData[i].Count > 0 && allData[i][0].ToString() == id)
+                for (int i = 0; i < values.Count; i++)
                 {
-                    return i + 1; // Google Sheet row index bắt đầu từ 1
+                    // i là index (0, 1, 2...), row thực tế trong sheet là i + 1
+                    if (values[i].Count > 0 && values[i][0].ToString() == id)
+                    {
+                        return i + 1;
+                    }
                 }
             }
-            return -1;
+            return -1; // Không tìm thấy
+        }
+
+        // 2. Hàm Cập nhật (Update)
+        public void Update(Order order)
+        {
+            int rowId = FindRowId(order.Id);
+            if (rowId == -1) return;
+
+            var range = $"{SheetName}!A{rowId}:S{rowId}";
+
+            // Xử lý ngày tháng về string
+            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "";
+            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy") : "";
+            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy") : "";
+
+            var valueRange = new ValueRange();
+            var objectList = new List<object>() {
+                order.Id,           // A
+                orderDate,          // B
+                order.Source,       // C
+                order.Warehouse,    // D
+                order.Code,         // E
+                order.Category,     // F
+                order.ProductName,  // G
+                order.Color,        // H
+                order.Size,         // I
+                order.SellingPrice, // J
+                order.Quantity,     // K
+                "=J:J*K:K",         // L (Formula: Giá * SL) - Google Sheet tự map dòng
+                order.CustomerName, // M
+                order.Deposit,      // N
+                order.Discount,     // O
+                "=L:L-N:N-O:O",     // P (Formula: Tổng - Cọc - CK)
+                arrDate,            // Q
+                payDate,            // R
+                order.ImportPrice  // S
+            };
+
+            valueRange.Values = new List<IList<object>> { objectList };
+            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            updateRequest.Execute();
         }
 
         // 1. Hàm dùng chung để đọc 1 cột dữ liệu

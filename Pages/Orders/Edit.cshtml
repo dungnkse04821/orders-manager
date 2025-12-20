@@ -1,13 +1,14 @@
 ﻿@page
-@model OrdersManager.Pages.CreateModel
+@model OrdersManager.Pages.Orders.EditModel
 @{
-    ViewData["Title"] = "Thêm đơn hàng";
+    ViewData["Title"] = "Cập nhật đơn hàng";
 }
 
 <h2>Thêm đơn hàng mới</h2>
 <hr />
 
 <form method="post">
+    <input type="hidden" asp-for="Order.Id" />
     <div class="row">
         <div class="col-md-6">
             <h5 class="text-primary">Thông tin sản phẩm</h5>
@@ -124,7 +125,7 @@
                 </div>
             </div>
 
-            <hr />
+            @* <hr />
             <h5 class="text-success">Giá vốn</h5>
             <div class="mb-3">
                 <label asp-for="Order.ImportPrice" class="form-label"></label>
@@ -132,7 +133,7 @@
                     <input asp-for="Order.ImportPrice" class="form-control" type="number" />
                     <span class="input-group-text">k</span>
                 </div>
-            </div>
+            </div> *@
         </div>
     </div>
 
