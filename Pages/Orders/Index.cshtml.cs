@@ -21,5 +21,14 @@ namespace OrdersManager.Pages.Orders
             Orders = _service.GetAll();
             Orders = Orders.OrderByDescending(o => o.OrderDate).ToList();
         }
+
+        public IActionResult OnPostDelete(string id)
+        {
+            if (id != null)
+            {
+                _service.Delete(id);
+            }
+            return RedirectToPage();
+        }
     }
 }

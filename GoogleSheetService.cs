@@ -142,17 +142,31 @@ namespace OrdersManager
             appendRequest.Execute();
         }
 
-        // 4. DELETE (Xóa)
+        // 3. Hàm Xóa (Delete)
         public void Delete(string id)
         {
             int rowId = FindRowId(id);
             if (rowId == -1) return;
 
-            // Trong Sheets API, xóa dòng thật sự khá phức tạp (dùng BatchUpdate), 
-            // cách đơn giản nhất là xóa trắng dữ liệu dòng đó.
-            var range = $"{SheetName}!A{rowId}:C{rowId}";
-            var clearRequest = service.Spreadsheets.Values.Clear(new ClearValuesRequest(), SpreadsheetId, range);
-            clearRequest.Execute();
+            var requestBody = new BatchUpdateSpreadsheetRequest();
+            requestBody.Requests = new List<Request>();
+
+            requestBody.Requests.Add(new Request
+            {
+                DeleteDimension = new DeleteDimensionRequest
+                {
+                    Range = new DimensionRange
+                    {
+                        SheetId = 732019451,
+                        Dimension = "ROWS",
+                        StartIndex = rowId - 1, // API tính từ 0
+                        EndIndex = rowId        // API xóa range [Start, End)
+                    }
+                }
+            });
+
+            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+            batchRequest.Execute();
         }
 
         // 1. Hàm tìm dòng dựa trên ID (Helper)
