@@ -1,0 +1,80 @@
+﻿@page
+@model OrdersManager.Pages.Customers.CustomerModel
+@{
+    ViewData["Title"] = "Danh sách khách hàng";
+}
+
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <h2 class="text-primary"><i class="bi bi-people-fill"></i> Khách Hàng</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="#" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Thêm khách mới
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" name="SearchTerm" class="form-control"
+                       placeholder="Tìm theo tên hoặc số điện thoại..."
+                       value="@Model.SearchTerm">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive bg-white shadow-sm rounded">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Họ và tên</th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Ghi chú</th>
+                <th class="text-center" style="width: 150px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Customers.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        Không tìm thấy dữ liệu khách hàng nào.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var item in Model.Customers)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@item.FullName</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.PhoneNumber))
+                            {
+                                <a href="tel:@item.PhoneNumber" class="text-decoration-none text-dark">
+                                    <i class="bi bi-telephone"></i> @item.PhoneNumber
+                                </a>
+                            }
+                        </td>
+                        <td>@item.Address</td>
+                        <td class="text-muted small">@item.Note</td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="#" class="btn btn-sm btn-outline-primary">Sửa</a>
+                                <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa?');">Xóa</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
