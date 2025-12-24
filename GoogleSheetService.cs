@@ -145,7 +145,7 @@ namespace OrdersManager
         // 3. Hàm Xóa (Delete)
         public void Delete(string id)
         {
-            int rowId = FindRowId(id);
+            int rowId = FindRowId(SheetName, id);
             if (rowId == -1) return;
 
             var requestBody = new BatchUpdateSpreadsheetRequest();
@@ -170,10 +170,9 @@ namespace OrdersManager
         }
 
         // 1. Hàm tìm dòng dựa trên ID (Helper)
-        private int FindRowId(string id)
+        private int FindRowId(string sheetName, string id)
         {
-            // Đọc cột A (chứa ID) để tìm dòng
-            var range = $"{SheetName}!A:A";
+            var range = $"{sheetName}!A:A"; // Đọc cột A của sheet được truyền vào
             var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
             var response = request.Execute();
             var values = response.Values;
@@ -182,20 +181,20 @@ namespace OrdersManager
             {
                 for (int i = 0; i < values.Count; i++)
                 {
-                    // i là index (0, 1, 2...), row thực tế trong sheet là i + 1
+                    // Kiểm tra ID khớp (Bỏ qua dòng header nếu cần)
                     if (values[i].Count > 0 && values[i][0].ToString() == id)
                     {
-                        return i + 1;
+                        return i + 1; // Row index trong Sheet bắt đầu từ 1
                     }
                 }
             }
-            return -1; // Không tìm thấy
+            return -1;
         }
 
         // 2. Hàm Cập nhật (Update)
         public void Update(Order order)
         {
-            int rowId = FindRowId(order.Id);
+            int rowId = FindRowId(SheetName, order.Id);
             if (rowId == -1) return;
 
             var range = $"{SheetName}!A{rowId}:S{rowId}";
@@ -290,6 +289,75 @@ namespace OrdersManager
                 }
             }
             return list;
+        }
+
+        // 2. Hàm Thêm Khách Hàng (Create)
+        public void AddCustomer(Customer customer)
+        {
+            var valueRange = new ValueRange();
+            var objectList = new List<object>() {
+                                customer.Id,
+                                customer.FullName,
+                                customer.PhoneNumber,
+                                customer.Address,
+                                customer.Note
+                            };
+            valueRange.Values = new List<IList<object>> { objectList };
+
+            // Ghi vào sheet KhachHang
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "KhachHang!A:E");
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            appendRequest.Execute();
+        }
+
+        // 3. Hàm Sửa Khách Hàng (Update)
+        public void UpdateCustomer(Customer customer)
+        {
+            // Tìm dòng trong sheet KhachHang
+            int rowId = FindRowId("KhachHang", customer.Id);
+            if (rowId == -1) return;
+
+            var range = $"KhachHang!A{rowId}:E{rowId}";
+            var valueRange = new ValueRange();
+            var objectList = new List<object>() {
+                                customer.Id, // Giữ nguyên ID
+                                customer.FullName,
+                                customer.PhoneNumber,
+                                customer.Address,
+                                customer.Note
+                            };
+            valueRange.Values = new List<IList<object>> { objectList };
+
+            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            updateRequest.Execute();
+        }
+
+        // 4. Hàm Xóa Khách Hàng (Delete)
+        public void DeleteCustomer(string id)
+        {
+            int rowId = FindRowId("KhachHang", id);
+            if (rowId == -1) return;
+
+            var requestBody = new BatchUpdateSpreadsheetRequest();
+            requestBody.Requests = new List<Request>();
+
+            requestBody.Requests.Add(new Request
+            {
+                DeleteDimension = new DeleteDimensionRequest
+                {
+                    Range = new DimensionRange
+                    {
+                        SheetId = 2138276695,
+                        Dimension = "ROWS",
+                        StartIndex = rowId - 1,
+                        EndIndex = rowId
+                    }
+                }
+            });
+
+            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+            batchRequest.Execute();
         }
     }
 }
