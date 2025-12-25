@@ -14,13 +14,12 @@ namespace OrdersManager.Pages.Customers
 
         public IActionResult OnGet(string id)
         {
-            if (id == null) return RedirectToPage("./Index");
+            if (id == null) return RedirectToPage("./Customer");
 
-            // Tìm khách hàng trong danh sách
             var list = _service.GetCustomers();
             Customer = list.FirstOrDefault(c => c.Id == id);
 
-            if (Customer == null) return RedirectToPage("./Index");
+            if (Customer == null) return RedirectToPage("./Customer");
 
             return Page();
         }
@@ -30,7 +29,7 @@ namespace OrdersManager.Pages.Customers
             if (!ModelState.IsValid) return Page();
 
             _service.UpdateCustomer(Customer);
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Customer");
         }
     }
 }

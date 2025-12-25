@@ -14,13 +14,14 @@ namespace OrdersManager.Pages.Customers
 
         public IActionResult OnPost()
         {
+            ModelState.Remove("Customer.Id");
             if (!ModelState.IsValid) return Page();
 
             // Tự sinh ID ngắn gọn (8 ký tự)
             Customer.Id = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
             _service.AddCustomer(Customer);
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Customer");
         }
     }
 }

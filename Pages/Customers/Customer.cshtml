@@ -9,7 +9,7 @@
         <h2 class="text-primary"><i class="bi bi-people-fill"></i> Khách Hàng</h2>
     </div>
     <div class="col-md-6 text-end">
-        <a href="#" class="btn btn-success">
+        <a href="./Create" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Thêm khách mới
         </a>
     </div>
@@ -68,8 +68,17 @@
                         <td class="text-muted small">@item.Note</td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a href="#" class="btn btn-sm btn-outline-primary">Sửa</a>
-                                <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa?');">Xóa</a>
+                                <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

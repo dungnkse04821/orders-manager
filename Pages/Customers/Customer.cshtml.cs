@@ -33,5 +33,14 @@ namespace OrdersManager.Pages.Customers
 
             Customers = data;
         }
+
+        public IActionResult OnPostDelete(string id)
+        {
+            if (id != null)
+            {
+                _service.DeleteCustomer(id);
+            }
+            return RedirectToPage();
+        }
     }
 }

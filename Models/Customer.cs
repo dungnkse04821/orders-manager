@@ -16,6 +16,6 @@ namespace OrdersManager.Models
         public string Address { get; set; }
 
         [DisplayName("Ghi chú")]
-        public string Note { get; set; }
+        public string? Note { get; set; }
     }
 }

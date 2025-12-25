@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-builder.Services.AddScoped<GoogleSheetService>();
+builder.Services.AddSingleton<GoogleSheetService>();
 
 var app = builder.Build();
 
