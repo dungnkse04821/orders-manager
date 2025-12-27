@@ -265,7 +265,7 @@ namespace OrdersManager
 
         public List<Customer> GetCustomers()
         {
-            var range = "KhachHang!A:E";
+            var range = "KhachHang!A:F";
 
             SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
             var response = request.Execute();
@@ -283,8 +283,9 @@ namespace OrdersManager
                         Id = row.Count > 0 ? row[0].ToString() : "",
                         FullName = row.Count > 1 ? row[1].ToString() : "",
                         PhoneNumber = row.Count > 2 ? row[2].ToString() : "",
-                        Address = row.Count > 3 ? row[3].ToString() : "",
-                        Note = row.Count > 4 ? row[4].ToString() : ""
+                        Email = row.Count > 3 ? row[3].ToString() : "",
+                        Address = row.Count > 4 ? row[4].ToString() : "",
+                        Note = row.Count > 5 ? row[5].ToString() : ""
                     });
                 }
             }
@@ -299,6 +300,7 @@ namespace OrdersManager
                                 customer.Id,
                                 customer.FullName,
                                 customer.PhoneNumber,
+                                customer.Email,
                                 customer.Address,
                                 customer.Note
                             };
@@ -323,6 +325,7 @@ namespace OrdersManager
                                 customer.Id, // Giữ nguyên ID
                                 customer.FullName,
                                 customer.PhoneNumber,
+                                customer.Email,
                                 customer.Address,
                                 customer.Note
                             };
