@@ -97,5 +97,16 @@ namespace OrdersManager.Models
         [DisplayName("Lãi")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal Profit { get; set; }
+
+        [DisplayName("Trạng thái")]
+        public string Status { get; set; } = "Chờ đặt";
+
+        public bool IsOrdered => Status == "Đã đặt";
+    }
+
+    public static class OrderStatus
+    {
+        public const string ChoDat = "Chờ đặt";
+        public const string DaDat = "Đã đặt";
     }
 }
