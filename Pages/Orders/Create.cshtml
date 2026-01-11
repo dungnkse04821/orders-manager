@@ -68,6 +68,33 @@
                 </div>
             </div>
 
+            <div class="alert alert-secondary mb-3">
+                <label class="fw-bold mb-1"><i class="bi bi-search"></i> Chọn nhanh sản phẩm từ kho:</label>
+                <select id="ddlQuickProduct" class="form-select select2-product">
+                    <option value="">-- Tìm theo tên hoặc mã SKU --</option>
+                    @foreach (var p in Model.ProductList)
+                    {
+                        <option value="@p.Sku">@p.DisplayText</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Order.Code" class="form-label"></label>
+                <input asp-for="Order.Code" class="form-control" id="txtCode" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Order.ProductName" class="form-label"></label>
+                <input asp-for="Order.ProductName" class="form-control" id="txtName" />
+            </div>
+
+            <div class="input-group">
+                <input asp-for="Order.SellingPrice" class="form-control" type="number" id="txtSellPrice" /> <span class="input-group-text">k</span>
+            </div>
+
+            <input asp-for="Order.ImportPrice" type="hidden" id="txtImportPrice" />
+
             <div class="mb-3">
                 <label asp-for="Order.ProductName" class="form-label"></label>
                 <input asp-for="Order.ProductName" class="form-control" />
@@ -219,5 +246,46 @@
                 }
             });
         }
+
+        $(document).ready(function() {
+            // 1. Kích hoạt Select2 cho ô chọn sản phẩm
+            $('.select2-product').select2({
+                theme: 'bootstrap-5',
+                placeholder: "Gõ tên hoặc mã sản phẩm để tìm...",
+                allowClear: true
+            });
+
+            // 2. Sự kiện khi chọn sản phẩm
+            $('#ddlQuickProduct').on('change', function() {
+                var selectedSku = $(this).val();
+
+                if (selectedSku) {
+                    // Gọi Ajax lấy thông tin chi tiết
+                    $.ajax({
+                        url: '?handler=ProductInfo', // Gọi hàm OnGetProductInfo
+                        type: "GET",
+                        data: { sku: selectedSku },
+                        success: function (response) {
+                            if (response.success) {
+                                // Tự động điền dữ liệu vào các ô input
+                                $('#txtCode').val(selectedSku);           // Điền Mã
+                                $('#txtName').val(response.name);         // Điền Tên
+                                $('#txtSellPrice').val(response.sellPrice); // Điền Giá bán
+                                $('#txtImportPrice').val(response.importPrice); // Điền Giá nhập (ẩn)
+
+                                // Điền Loại hàng (Nếu dropdown Loại hàng có giá trị tương ứng)
+                                // Lưu ý: Giá trị trong Sheet SanPham phải khớp với Sheet Config_LoaiHang
+                                $('select[name="Order.Category"]').val(response.category).trigger('change');
+
+                                // Focus vào ô Số lượng để nhập tiếp cho nhanh
+                                $('input[name="Order.Quantity"]').focus();
+                            }
+                        }
+                    });
+                } else {
+                    // Nếu xóa chọn thì có thể clear form hoặc giữ nguyên tùy bạn
+                }
+            });
+        });
     </script>
 }

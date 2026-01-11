@@ -20,12 +20,14 @@ namespace OrdersManager.Pages.Orders
         public List<string> Sources { get; set; }
         public List<string> Warehouses { get; set; }
         public List<string> Categories { get; set; }
+        public List<Product> ProductList { get; set; }
 
         public void OnGet()
         {
             // Khởi tạo giá trị mặc định
             Order.OrderDate = DateTime.Now;
             LoadDropdowns();
+            ProductList = _service.GetProducts();
         }
 
         public IActionResult OnPost()
@@ -42,6 +44,25 @@ namespace OrdersManager.Pages.Orders
             _service.Add(Order);
 
             return RedirectToPage("./Index");
+        }
+
+        public IActionResult OnGetProductInfo(string sku)
+        {
+            var products = _service.GetProducts();
+            var product = products.FirstOrDefault(p => p.Sku == sku);
+
+            if (product != null)
+            {
+                return new JsonResult(new
+                {
+                    success = true,
+                    name = product.Name,
+                    category = product.Category,
+                    sellPrice = product.SellingPrice,
+                    importPrice = product.ImportPrice
+                });
+            }
+            return new JsonResult(new { success = false });
         }
 
         // --- API XỬ LÝ AJAX THÊM MỚI ---

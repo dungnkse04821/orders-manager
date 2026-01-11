@@ -364,35 +364,62 @@ namespace OrdersManager
         }
 
         // 3. THÊM HÀM MỚI: UpdateStatus (Chỉ update các cột cần thiết để tối ưu)
-        public void UpdateStatusAndFinance(string id, string status, DateTime? arrivalDate, decimal importPrice, DateTime? paymentDate)
+    //    public void UpdateStatusAndFinance(string id, string status, DateTime? arrivalDate, decimal importPrice, DateTime? paymentDate)
+    //    {
+    //        int rowId = FindRowId("DonHang", id); // Nhớ đổi tên sheet cho đúng
+    //        if (rowId == -1) return;
+
+    //        // Ta cần update: 
+    //        // Q: Ngày về (ArrivalDate)
+    //        // R: Ngày TT (PaymentDate)
+    //        // S: Giá nhập (ImportPrice)
+    //        // V: Trạng thái (Status)
+
+    //        // Update Ngày về (Q) và Ngày TT (R) và Giá nhập (S) - Range Q:S
+    //        var rangeFinance = $"DonHang!Q{rowId}:S{rowId}";
+    //        var valFinance = new ValueRange
+    //        {
+    //            Values = new List<IList<object>> { new List<object> {
+    //    arrivalDate.HasValue ? arrivalDate.Value.ToString("dd/MM/yyyy") : "",
+    //    paymentDate.HasValue ? paymentDate.Value.ToString("dd/MM/yyyy") : "",
+    //    importPrice
+    //}}
+    //        };
+    //        service.Spreadsheets.Values.Update(valFinance, SpreadsheetId, rangeFinance)
+    //            .SetInputOption("USER_ENTERED").Execute();
+
+    //        // Update Trạng thái (V) - Range V
+    //        var rangeStatus = $"DonHang!V{rowId}";
+    //        var valStatus = new ValueRange { Values = new List<IList<object>> { new List<object> { status } } };
+    //        service.Spreadsheets.Values.Update(valStatus, SpreadsheetId, rangeStatus)
+    //            .SetInputOption("USER_ENTERED").Execute();
+    //    }
+
+        public List<Product> GetProducts()
         {
-            int rowId = FindRowId("DonHang", id); // Nhớ đổi tên sheet cho đúng
-            if (rowId == -1) return;
+            var range = "SanPham!A:E";
+            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
+            var response = request.Execute();
+            var values = response.Values;
+            var list = new List<Product>();
 
-            // Ta cần update: 
-            // Q: Ngày về (ArrivalDate)
-            // R: Ngày TT (PaymentDate)
-            // S: Giá nhập (ImportPrice)
-            // V: Trạng thái (Status)
-
-            // Update Ngày về (Q) và Ngày TT (R) và Giá nhập (S) - Range Q:S
-            var rangeFinance = $"DonHang!Q{rowId}:S{rowId}";
-            var valFinance = new ValueRange
+            if (values != null && values.Count > 0)
             {
-                Values = new List<IList<object>> { new List<object> {
-        arrivalDate.HasValue ? arrivalDate.Value.ToString("dd/MM/yyyy") : "",
-        paymentDate.HasValue ? paymentDate.Value.ToString("dd/MM/yyyy") : "",
-        importPrice
-    }}
-            };
-            service.Spreadsheets.Values.Update(valFinance, SpreadsheetId, rangeFinance)
-                .SetInputOption("USER_ENTERED").Execute();
+                foreach (var row in values)
+                {
+                    if (row.Count == 0 || row[0].ToString() == "SKU") continue;
 
-            // Update Trạng thái (V) - Range V
-            var rangeStatus = $"DonHang!V{rowId}";
-            var valStatus = new ValueRange { Values = new List<IList<object>> { new List<object> { status } } };
-            service.Spreadsheets.Values.Update(valStatus, SpreadsheetId, rangeStatus)
-                .SetInputOption("USER_ENTERED").Execute();
+                    list.Add(new Product
+                    {
+                        Sku = row.Count > 0 ? row[0].ToString() : "",
+                        Name = row.Count > 1 ? row[1].ToString() : "",
+                        Category = row.Count > 2 ? row[2].ToString() : "",
+                        ImportPrice = row.Count > 3 ? ParseDecimal(row[3]) : 0,
+                        SellingPrice = row.Count > 4 ? ParseDecimal(row[4]) : 0
+                    });
+                }
+            }
+            return list;
         }
     }
 }
