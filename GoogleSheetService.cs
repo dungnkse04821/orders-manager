@@ -133,7 +133,10 @@ namespace OrdersManager
                 payDate,            // R
                 order.ImportPrice,  // S
                 "=R:R*K:K",         // T (Formula: Giá Nhập * SL)
-                "=L:L-T:T"          // U (Formula: Tổng tiền bán - Thành tiền nhập
+                "=L:L-T:T",          // U (Formula: Tổng tiền bán - Thành tiền nhập
+                order.Status,       // V
+                order.PhoneNumber,  // W (Mới)
+                order.ShippingAddress // X (Mới)
             };
 
             valueRange.Values = new List<IList<object>> { objectList };
@@ -364,36 +367,42 @@ namespace OrdersManager
         }
 
         // 3. THÊM HÀM MỚI: UpdateStatus (Chỉ update các cột cần thiết để tối ưu)
-    //    public void UpdateStatusAndFinance(string id, string status, DateTime? arrivalDate, decimal importPrice, DateTime? paymentDate)
-    //    {
-    //        int rowId = FindRowId("DonHang", id); // Nhớ đổi tên sheet cho đúng
-    //        if (rowId == -1) return;
+        //    public void UpdateStatusAndFinance(string id, string status, DateTime? arrivalDate, decimal importPrice, DateTime? paymentDate)
+        //    {
+        //        int rowId = FindRowId("DonHang", id); // Nhớ đổi tên sheet cho đúng
+        //        if (rowId == -1) return;
 
-    //        // Ta cần update: 
-    //        // Q: Ngày về (ArrivalDate)
-    //        // R: Ngày TT (PaymentDate)
-    //        // S: Giá nhập (ImportPrice)
-    //        // V: Trạng thái (Status)
+        //        // Ta cần update: 
+        //        // Q: Ngày về (ArrivalDate)
+        //        // R: Ngày TT (PaymentDate)
+        //        // S: Giá nhập (ImportPrice)
+        //        // V: Trạng thái (Status)
 
-    //        // Update Ngày về (Q) và Ngày TT (R) và Giá nhập (S) - Range Q:S
-    //        var rangeFinance = $"DonHang!Q{rowId}:S{rowId}";
-    //        var valFinance = new ValueRange
-    //        {
-    //            Values = new List<IList<object>> { new List<object> {
-    //    arrivalDate.HasValue ? arrivalDate.Value.ToString("dd/MM/yyyy") : "",
-    //    paymentDate.HasValue ? paymentDate.Value.ToString("dd/MM/yyyy") : "",
-    //    importPrice
-    //}}
-    //        };
-    //        service.Spreadsheets.Values.Update(valFinance, SpreadsheetId, rangeFinance)
-    //            .SetInputOption("USER_ENTERED").Execute();
+        //        // Update Ngày về (Q) và Ngày TT (R) và Giá nhập (S) - Range Q:S
+        //        var rangeFinance = $"DonHang!Q{rowId}:S{rowId}";
+        //        var valFinance = new ValueRange
+        //        {
+        //            Values = new List<IList<object>> { new List<object> {
+        //    arrivalDate.HasValue ? arrivalDate.Value.ToString("dd/MM/yyyy") : "",
+        //    paymentDate.HasValue ? paymentDate.Value.ToString("dd/MM/yyyy") : "",
+        //    importPrice
+        //}}
+        //        };
+        //        service.Spreadsheets.Values.Update(valFinance, SpreadsheetId, rangeFinance)
+        //            .SetInputOption("USER_ENTERED").Execute();
 
-    //        // Update Trạng thái (V) - Range V
-    //        var rangeStatus = $"DonHang!V{rowId}";
-    //        var valStatus = new ValueRange { Values = new List<IList<object>> { new List<object> { status } } };
-    //        service.Spreadsheets.Values.Update(valStatus, SpreadsheetId, rangeStatus)
-    //            .SetInputOption("USER_ENTERED").Execute();
-    //    }
+        //        // Update Trạng thái (V) - Range V
+        //        var rangeStatus = $"DonHang!V{rowId}";
+        //        var valStatus = new ValueRange { Values = new List<IList<object>> { new List<object> { status } } };
+        //        service.Spreadsheets.Values.Update(valStatus, SpreadsheetId, rangeStatus)
+        //            .SetInputOption("USER_ENTERED").Execute();
+        //    }
+
+        public Customer GetCustomerByPhone(string phone)
+        {
+            var customers = GetCustomers();
+            return customers.FirstOrDefault(c => c.PhoneNumber == phone);
+        }
 
         public List<Product> GetProducts()
         {

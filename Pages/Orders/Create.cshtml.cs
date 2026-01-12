@@ -39,6 +39,25 @@ namespace OrdersManager.Pages.Orders
                 return Page();
             }
 
+            // Kiểm tra xem khách này đã có trong DB chưa?
+            var existingCust = _service.GetCustomerByPhone(Order.PhoneNumber);
+
+            if (existingCust == null && !string.IsNullOrEmpty(Order.PhoneNumber))
+            {
+                // Chưa có -> Tạo mới khách hàng
+                var newCustomer = new Customer
+                {
+                    Id = Guid.NewGuid().ToString().Substring(0, 8),
+                    PhoneNumber = Order.PhoneNumber,
+                    FullName = Order.CustomerName,
+                    Address = Order.ShippingAddress,
+                    Note = "Tự động thêm từ đơn hàng"
+                };
+
+                // Lưu vào Sheet KhachHang
+                _service.AddCustomer(newCustomer);
+            }
+
             // Sinh ID và lưu
             Order.Id = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
             _service.Add(Order);
@@ -63,6 +82,21 @@ namespace OrdersManager.Pages.Orders
                 });
             }
             return new JsonResult(new { success = false });
+        }
+
+        public IActionResult OnGetCheckPhone(string phone)
+        {
+            var cust = _service.GetCustomerByPhone(phone);
+            if (cust != null)
+            {
+                return new JsonResult(new
+                {
+                    found = true,
+                    name = cust.FullName,
+                    address = cust.Address
+                });
+            }
+            return new JsonResult(new { found = false });
         }
 
         // --- API XỬ LÝ AJAX THÊM MỚI ---

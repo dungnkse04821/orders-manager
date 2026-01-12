@@ -161,6 +161,32 @@
                 </div>
             </div> *@
         </div>
+
+        <div class="col-md-6">
+            <div class="card bg-light mb-3">
+                <div class="card-header fw-bold text-primary">
+                    <i class="bi bi-person-lines-fill"></i> Thông tin khách hàng
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Order.PhoneNumber" class="form-label">Số điện thoại (*)</label>
+                        <input asp-for="Order.PhoneNumber" class="form-control" id="txtPhone" placeholder="Nhập SĐT và bấm Tab..." required />
+                        <small class="text-muted fst-italic" id="phoneStatus"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Order.CustomerName" class="form-label">Tên khách hàng</label>
+                        <input asp-for="Order.CustomerName" class="form-control" id="txtCustName" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Order.ShippingAddress" class="form-label">Địa chỉ giao hàng</label>
+                        <textarea asp-for="Order.ShippingAddress" class="form-control" id="txtAddress" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <div class="mt-4">
@@ -286,6 +312,35 @@
                     // Nếu xóa chọn thì có thể clear form hoặc giữ nguyên tùy bạn
                 }
             });
+        });
+
+            // LOGIC KHÁCH HÀNG
+        $('#txtPhone').on('blur', function() {
+            var phone = $(this).val();
+            if (phone && phone.length > 8) { // Chỉ check nếu SĐT đủ dài
+
+                $('#phoneStatus').text('Đang kiểm tra...');
+
+                $.ajax({
+                    url: '?handler=CheckPhone',
+                    type: "GET",
+                    data: { phone: phone },
+                    success: function (response) {
+                        if (response.found) {
+                            // CÓ: Điền thông tin cũ
+                            $('#txtCustName').val(response.name);
+                            $('#txtAddress').val(response.address);
+
+                            $('#phoneStatus').html('<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Khách hàng cũ</span>');
+                        } else {
+                            // KHÔNG: Để trống cho nhập mới
+                            // (Có thể clear nếu muốn: $('#txtCustName').val(''))
+
+                            $('#phoneStatus').html('<span class="text-primary fw-bold"><i class="bi bi-person-plus"></i> Khách hàng mới (Sẽ tự động lưu)</span>');
+                        }
+                    }
+                });
+            }
         });
     </script>
 }

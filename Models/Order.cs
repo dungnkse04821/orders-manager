@@ -101,6 +101,11 @@ namespace OrdersManager.Models
         [DisplayName("Trạng thái")]
         public string Status { get; set; } = "Chờ đặt";
 
+        [DisplayName("Số điện thoại")]
+        public string PhoneNumber { get; set; }
+
+        [DisplayName("Địa chỉ giao hàng")]
+        public string ShippingAddress { get; set; }
         public bool IsOrdered => Status == "Đã đặt";
     }
 
