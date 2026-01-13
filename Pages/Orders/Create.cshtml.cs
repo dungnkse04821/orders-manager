@@ -26,8 +26,9 @@ namespace OrdersManager.Pages.Orders
         {
             // Khởi tạo giá trị mặc định
             Order.OrderDate = DateTime.Now;
+            Order.Status = "Chờ đặt";
             LoadDropdowns();
-            ProductList = _service.GetProducts();
+            //ProductList = _service.GetProducts();
         }
 
         public IActionResult OnPost()
@@ -124,6 +125,7 @@ namespace OrdersManager.Pages.Orders
             Sources = _service.GetConfigData("Config_NguonHang");
             Warehouses = _service.GetConfigData("Config_Kho");
             Categories = _service.GetConfigData("Config_LoaiHang");
+            ProductList = _service.GetProducts();
         }
 
     }

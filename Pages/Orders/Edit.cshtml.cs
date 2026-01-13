@@ -16,7 +16,7 @@ namespace OrdersManager.Pages.Orders
         public List<string> Sources { get; set; }
         public List<string> Warehouses { get; set; }
         public List<string> Categories { get; set; }
-
+        public List<Product> ProductList { get; set; }
         public IActionResult OnGet(string id)
         {
             if (id == null) return RedirectToPage("./Index");
@@ -30,6 +30,8 @@ namespace OrdersManager.Pages.Orders
             Sources = _service.GetConfigData("Config_NguonHang");
             Warehouses = _service.GetConfigData("Config_Kho");
             Categories = _service.GetConfigData("Config_LoaiHang");
+            ProductList = _service.GetProducts();
+            //Order.Status = "Chờ đặt";
 
             return Page();
         }

@@ -6,21 +6,22 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Danh sách đơn hàng</h1>
-    <a asp-page="Create" class="btn btn-primary">Thêm đơn mới</a>
+    <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Thêm đơn mới</a>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-bordered table-hover">
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-bordered table-hover align-middle">
         <thead class="table-dark">
             <tr>
                 <th>Ngày</th>
+                <th class="text-center">Trạng thái</th>
                 <th>Khách hàng</th>
                 <th>Sản phẩm</th>
                 <th>Giá bán</th>
                 <th>SL</th>
                 <th>Tổng tiền</th>
                 <th>Lợi nhuận</th>
-                <th>Thao tác</th>
+                <th class="text-center">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -28,11 +29,30 @@
             {
                 <tr>
                     <td>@(item.OrderDate?.ToString("dd/MM/yyyy"))</td>
+
+                    <td class="text-center">
+                        @if (item.Status == "Chờ đặt")
+                        {
+                            <span class="badge bg-warning text-dark">@item.Status</span>
+                        }
+                        else if (item.Status == "Hủy")
+                        {
+                            <span class="badge bg-danger">@item.Status</span>
+                        }
+                        else if (item.Status == "Đã giao")
+                        {
+                            <span class="badge bg-success">@item.Status</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-primary">@item.Status</span>
+                        }
+                    </td>
                     <td>@item.CustomerName</td>
                     <td>
                         <span class="badge bg-info text-dark">@item.Source</span>
                         @item.ProductName
-                        <small class="text-muted">(@item.Color - @item.Size)</small>
+                        <small class="text-muted d-block">(@item.Color - @item.Size)</small>
                     </td>
                     <td class="text-end">@item.SellingPrice.ToString("N0")</td>
                     <td class="text-center">@item.Quantity</td>
@@ -40,7 +60,7 @@
                     <td class="text-end text-success">@item.Profit.ToString("N0")</td>
                     <td class="text-center">
                         <div class="btn-group" role="group">
-                            <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                            <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
@@ -48,7 +68,7 @@
                                   style="display:inline;"
                                   onsubmit="return confirm('Bạn có chắc chắn muốn xóa đơn này không?');">
 
-                                <button type="submit" class="btn btn-sm btn-danger">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

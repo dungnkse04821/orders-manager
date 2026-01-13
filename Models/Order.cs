@@ -106,12 +106,18 @@ namespace OrdersManager.Models
 
         [DisplayName("Địa chỉ giao hàng")]
         public string ShippingAddress { get; set; }
-        public bool IsOrdered => Status == "Đã đặt";
     }
 
-    public static class OrderStatus
+    public static class OrderStatusList
     {
-        public const string ChoDat = "Chờ đặt";
-        public const string DaDat = "Đã đặt";
+        public static List<string> All = new List<string>
+        {
+            "Chờ đặt",
+            "Đã đặt",
+            "Đang về",
+            "Đã về",
+            "Đã giao",
+            "Hủy"
+        };
     }
 }

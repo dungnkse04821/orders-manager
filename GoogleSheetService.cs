@@ -49,7 +49,7 @@ namespace OrdersManager
 
         public List<Order> GetAll()
         {
-            var range = $"{SheetName}!A:U";
+            var range = $"{SheetName}!A:X";
             SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
             request.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.FORMATTEDVALUE;
             var response = request.Execute();
@@ -92,7 +92,10 @@ namespace OrdersManager
                     // Cột 19 (T), 20 (U) là công thức
                     order.TotalImportCost = row.Count > 19 ? ParseDecimal(row[19]) : 0;
                     order.Profit = row.Count > 20 ? ParseDecimal(row[20]) : 0;
+                    order.Status = row.Count > 21 ? row[21].ToString() : null;
 
+                    order.PhoneNumber = row.Count > 22 ? row[22].ToString() : "";
+                    order.ShippingAddress = row.Count > 23 ? row[23].ToString() : "";
                     list.Add(order);
                 }
             }
@@ -200,40 +203,73 @@ namespace OrdersManager
             int rowId = FindRowId(SheetName, order.Id);
             if (rowId == -1) return;
 
-            var range = $"{SheetName}!A{rowId}:S{rowId}";
+            var range = $"{SheetName}!A{rowId}:X{rowId}";
 
             // Xử lý ngày tháng về string
             string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "";
             string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy") : "";
             string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy") : "";
 
-            var valueRange = new ValueRange();
-            var objectList = new List<object>() {
-                order.Id,           // A
-                orderDate,          // B
-                order.Source,       // C
-                order.Warehouse,    // D
-                order.Code,         // E
-                order.Category,     // F
-                order.ProductName,  // G
-                order.Color,        // H
-                order.Size,         // I
-                order.SellingPrice, // J
-                order.Quantity,     // K
-                "=J:J*K:K",         // L (Formula: Giá * SL) - Google Sheet tự map dòng
-                order.CustomerName, // M
-                order.Deposit,      // N
-                order.Discount,     // O
-                "=L:L-N:N-O:O",     // P (Formula: Tổng - Cọc - CK)
-                arrDate,            // Q
-                payDate,            // R
-                order.ImportPrice  // S
-            };
 
-            valueRange.Values = new List<IList<object>> { objectList };
-            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            updateRequest.Execute();
+            // 1. Update Hàng hóa (A->K)
+            UpdateRange(rowId, "A", "K", new List<object> {
+                order.Id, orderDate, order.Source, order.Warehouse, order.Code,
+                order.Category, order.ProductName, order.Color, order.Size,
+                order.SellingPrice, order.Quantity
+            });
+
+            // 2. Update Tài chính & Khách (M->O)
+            UpdateRange(rowId, "M", "O", new List<object> {
+                order.CustomerName, order.Deposit, order.Discount
+            });
+
+            // 3. Update SĐT & Địa chỉ (W->X) <--- QUAN TRỌNG
+            UpdateRange(rowId, "V", "X", new List<object> {
+                order.Status, order.PhoneNumber, order.ShippingAddress
+            });
+
+
+            //var valueRange = new ValueRange();
+            //var objectList = new List<object>() {
+            //    order.Id,           // A
+            //    orderDate,          // B
+            //    order.Source,       // C
+            //    order.Warehouse,    // D
+            //    order.Code,         // E
+            //    order.Category,     // F
+            //    order.ProductName,  // G
+            //    order.Color,        // H
+            //    order.Size,         // I
+            //    order.SellingPrice, // J
+            //    order.Quantity,     // K
+            //    "=J:J*K:K",         // L (Formula: Giá * SL) - Google Sheet tự map dòng
+            //    order.CustomerName, // M
+            //    order.Deposit,      // N
+            //    order.Discount,     // O
+            //    "=L:L-N:N-O:O",     // P (Formula: Tổng - Cọc - CK)
+            //    arrDate,            // Q
+            //    payDate,            // R
+            //    order.ImportPrice,  // S
+            //    null,               // T (Tổng vốn - Để null)
+            //    null,               // U (Lãi - Để null)
+            //    order.Status,       // V
+            //    order.PhoneNumber,  // W (MỚI)
+            //    order.ShippingAddress // X (MỚI)
+            //};
+
+            //valueRange.Values = new List<IList<object>> { objectList };
+            //var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            //updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            //updateRequest.Execute();
+        }
+
+        private void UpdateRange(int rowId, string colStart, string colEnd, List<object> data)
+        {
+            var range = $"{SheetName}!{colStart}{rowId}:{colEnd}{rowId}";
+            var valueRange = new ValueRange { Values = new List<IList<object>> { data } };
+            var request = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            request.Execute();
         }
 
         // 1. Hàm dùng chung để đọc 1 cột dữ liệu
@@ -299,10 +335,13 @@ namespace OrdersManager
         public void AddCustomer(Customer customer)
         {
             var valueRange = new ValueRange();
+
+            var phoneNumber = "'" + customer.PhoneNumber;
+
             var objectList = new List<object>() {
                                 customer.Id,
                                 customer.FullName,
-                                customer.PhoneNumber,
+                                phoneNumber,
                                 customer.Email,
                                 customer.Address,
                                 customer.Note
