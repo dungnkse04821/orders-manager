@@ -229,81 +229,95 @@
         var myModal;
 
         $(document).ready(function() {
-            // --- 1. CẤU HÌNH CÁC LIB ---
+            // --- 1. KHỞI TẠO CÁC DROPDOWN ---
+
+            // Dropdown thường
             $('.select2-dropdown').select2({
                 theme: 'bootstrap-5',
                 width: 'style',
                 placeholder: "Chọn..."
             });
 
-            $('.select2-product').select2({
+            // Ô TÌM SẢN PHẨM (QUAN TRỌNG: Cấu hình giống hệt trang Create)
+            var $productSelect = $('.select2-product').select2({
                 theme: 'bootstrap-5',
-                placeholder: "Gõ tên hoặc mã SKU để đổi SP...",
-                allowClear: true
+                placeholder: "Gõ Mã SP để đổi hoặc nhập Mã mới...",
+                allowClear: true,
+                tags: true, // Cho phép nhập mã mới
+                createTag: function (params) {
+                    var term = $.trim(params.term);
+                    if (term === '') return null;
+                    return { id: term, text: term + ' (Sản phẩm mới)', newOption: true }
+                }
             });
 
             myModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
 
-
-            // ============================================================
-            // === ĐÂY LÀ PHẦN MỚI THÊM ĐỂ HIỆN LẠI THÔNG TIN CŨ ===
-            // ============================================================
-            
-            // 1. Đồng bộ Dropdown Sản phẩm với Mã Code hiện tại
-            var currentCode = $('#txtCode').val(); // Lấy mã code đang có trong ô input
+            // --- 2. LOGIC ĐỒNG BỘ KHI MỚI VÀO TRANG (Load Initial) ---
+            // Lấy mã code đang có trong ô input (dữ liệu cũ của đơn hàng)
+            var currentCode = $('#txtCode').val();
             if (currentCode) {
-                // Set giá trị cho Select2 nhưng KHÔNG gọi Ajax (để tránh ghi đè giá tiền cũ của đơn hàng)
-                $('#ddlQuickProduct').val(currentCode).trigger('change.select2');
+                // Set giá trị cho Select2 nhưng KHÔNG kích hoạt sự kiện change
+                // Để tránh việc nó tự động load lại giá gốc, làm mất giá bạn đã sửa tay (nếu có)
+                $productSelect.val(currentCode).trigger('change.select2');
             }
 
-            // 2. Hiển thị trạng thái Khách hàng
+            // Check trạng thái SĐT cũ
             var currentPhone = $('#txtPhone').val();
             if (currentPhone) {
-                // Vì đang sửa đơn, nên mặc định SĐT đó là hợp lệ/đã có
-                $('#phoneStatus').html('<span class="text-success small fw-bold"><i class="bi bi-check-circle"></i> Thông tin khách hàng hiện tại</span>');
+                $('#phoneStatus').html('<span class="text-success small fw-bold"><i class="bi bi-check-circle"></i> Thông tin hiện tại</span>');
             }
-            // ============================================================
 
 
-            // --- 2. XỬ LÝ SỰ KIỆN CHỌN SẢN PHẨM (GHI ĐÈ) ---
-            $('#ddlQuickProduct').on('change', function() {
-                var selectedSku = $(this).val();
-                
-                // Chỉ chạy Ajax nếu người dùng THỰC SỰ chọn (click chuột), 
-                // tránh chạy khi code JS set giá trị ban đầu (nếu dùng trigger change thường)
-                // Tuy nhiên ở trên ta dùng 'change.select2' nên sự kiện này có thể bị kích hoạt.
-                // Ta check xem Mã Code trong ô input có khác với cái vừa chọn không.
-                // Nếu giống nhau (tức là lúc vừa load trang) thì thôi không load lại giá.
-                
-                var currentInputCode = $('#txtCode').val();
-                
-                if (selectedSku && selectedSku !== currentInputCode) {
+            // --- 3. XỬ LÝ SỰ KIỆN KHI NGƯỜI DÙNG CHỌN SẢN PHẨM KHÁC ---
+            $productSelect.on('select2:select', function (e) {
+                var data = e.params.data;
+                var selectedSku = data.id;
+
+                // TRƯỜNG HỢP A: NHẬP MÃ MỚI TOANH
+                if (data.newOption) {
+                    $('#txtCode').val(selectedSku.toUpperCase());
+                    $('#txtName').val('').attr('placeholder', 'Nhập tên sản phẩm mới...').focus();
+                    $('#txtSellPrice').val('0');
+                    $('#txtImportPrice').val('0');
+                    $('select[name="Order.Category"]').val('').trigger('change');
+                }
+                // TRƯỜNG HỢP B: CHỌN SẢN PHẨM CÓ SẴN (Gọi Ajax)
+                else {
                     $('#txtName').attr('placeholder', 'Đang tải thông tin...');
 
                     $.ajax({
-                        url: '?handler=ProductInfo',
+                        url: '?handler=ProductInfo', // Gọi Ajax
                         type: "GET",
                         data: { sku: selectedSku },
                         success: function (response) {
                             if (response.success) {
+                                // Ghi đè thông tin mới vào form
                                 $('#txtCode').val(selectedSku);
                                 $('#txtName').val(response.name);
                                 $('#txtSellPrice').val(response.sellPrice);
                                 $('#txtImportPrice').val(response.importPrice);
                                 $('select[name="Order.Category"]').val(response.category).trigger('change');
-                                $('input[name="Order.Quantity"]').select(); // Focus số lượng
+                                $('input[name="Order.Quantity"]').select();
                             }
                         }
                     });
                 }
             });
 
-            // --- 3. XỬ LÝ CHECK SĐT ---
+            // Xử lý khi xóa chọn (nút X)
+            $productSelect.on('select2:clear', function (e) {
+                $('#txtCode').val('');
+                $('#txtName').val('');
+                $('#txtSellPrice').val('');
+            });
+
+
+            // --- 4. CHECK SĐT ---
             $('#txtPhone').on('blur', function() {
                 var phone = $(this).val();
-                // Chỉ check khi SĐT thay đổi so với dữ liệu gốc (để đỡ spam server)
-                // Nhưng nếu muốn chắc chắn thì cứ check
-                if (phone && phone.length > 8) {
+                // Chỉ check nếu khác SĐT ban đầu (tránh spam server)
+                if (phone && phone.length > 8 && phone !== currentPhone) {
                     $('#phoneStatus').html('<div class="spinner-border spinner-border-sm text-primary"></div> Checking...');
                     $.ajax({
                         url: '?handler=CheckPhone',
@@ -323,24 +337,20 @@
             });
         });
 
-        // --- CÁC HÀM MODAL GIỮ NGUYÊN ---
+        // --- 5. CÁC HÀM MODAL (Giữ nguyên) ---
         function openModal(type, title) {
             $('#lblAttrType').text(title);
-            $('#hdnAttrType').val(type); 
-            $('#txtAttrValue').val('');  
+            $('#hdnAttrType').val(type);
+            $('#txtAttrValue').val('');
             myModal.show();
-            setTimeout(() => $('#txtAttrValue').focus(), 500); 
+            setTimeout(() => $('#txtAttrValue').focus(), 500);
         }
 
         function saveAttribute() {
             var type = $('#hdnAttrType').val();
             var value = $('#txtAttrValue').val();
 
-            if(!value) { 
-                alert("Vui lòng nhập tên cần thêm!"); 
-                $('#txtAttrValue').focus();
-                return; 
-            }
+            if(!value) { alert("Vui lòng nhập tên!"); $('#txtAttrValue').focus(); return; }
 
             var token = $('input[name="__RequestVerificationToken"]').val();
 
@@ -352,7 +362,7 @@
                 success: function (response) {
                     if (response.success) {
                         var newOption = new Option(value, value, true, true);
-                        var targetSelect = '#ddl' + type; 
+                        var targetSelect = '#ddl' + type;
                         $(targetSelect).append(newOption).trigger('change');
                         myModal.hide();
                     } else {

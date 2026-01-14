@@ -116,17 +116,6 @@
                     <label asp-for="Order.OrderDate" class="form-label"></label>
                     <input asp-for="Order.OrderDate" class="form-control" type="date" />
                 </div>
-                @* <div class="card bg-warning bg-opacity-10 mb-3 border-warning">
-                    <div class="card-body py-2">
-                        <label asp-for="Order.Status" class="form-label fw-bold text-dark">Trạng thái đơn hàng</label>
-                        <select asp-for="Order.Status" class="form-select fw-bold text-primary">
-                            @foreach (var s in OrdersManager.Models.OrderStatusList.All)
-                            {
-                                <option value="@s">@s</option>
-                            }
-                        </select>
-                    </div>
-                </div> *@
             </div>
 
             <input asp-for="Order.ImportPrice" type="hidden" id="txtImportPrice" />
@@ -223,60 +212,86 @@
 
 @section Scripts {
     <script>
-        // Khai báo biến Modal ở scope ngoài để dùng chung
         var myModal;
 
         $(document).ready(function() {
             // --- 1. KHỞI TẠO SELECT2 ---
-            // Cấu hình chung cho tất cả dropdown
+
+            // Dropdown thường (Nguồn, Kho, Loại)
             $('.select2-dropdown').select2({
                 theme: 'bootstrap-5',
                 width: 'style',
                 placeholder: "Chọn..."
             });
 
-            // Cấu hình riêng cho ô tìm kiếm sản phẩm
+            // --- QUAN TRỌNG: Cấu hình cho ô tìm kiếm sản phẩm ---
             $('.select2-product').select2({
                 theme: 'bootstrap-5',
-                placeholder: "Gõ tên hoặc mã sản phẩm để tìm...",
-                allowClear: true
+                placeholder: "Gõ Mã SP để tìm hoặc nhập Mã mới...",
+                allowClear: true,
+                tags: true, // <--- CHO PHÉP NHẬP GIÁ TRỊ MỚI
+                createTag: function (params) {
+                    // Hàm này tạo giao diện cho từ khóa mới nhập
+                    var term = $.trim(params.term);
+                    if (term === '') return null;
+                    return {
+                        id: term,
+                        text: term + ' (Tạo mới)', // Thêm chữ "Tạo mới" cho dễ hiểu
+                        newOption: true // Đánh dấu là mới
+                    }
+                }
             });
 
             // Khởi tạo Modal Bootstrap
             myModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
 
 
-            // --- 2. XỬ LÝ: TÌM NHANH SẢN PHẨM ---
+            // --- 2. XỬ LÝ: CHỌN SẢN PHẨM ---
             $('#ddlQuickProduct').on('change', function() {
                 var selectedSku = $(this).val();
 
+                // Lấy thông tin xem đây là item có sẵn hay item mới nhập
+                var data = $(this).select2('data')[0];
+
                 if (selectedSku) {
-                    // Hiển thị trạng thái đang tải (Optional UI improvement)
-                    $('#txtName').attr('placeholder', 'Đang tải thông tin...');
+                    // TRƯỜNG HỢP 1: SẢN PHẨM MỚI (Do người dùng tự gõ)
+                    if (data && data.newOption) {
+                        // Điền mã vào ô Code
+                        $('#txtCode').val(selectedSku.toUpperCase());
 
-                    $.ajax({
-                        url: '?handler=ProductInfo',
-                        type: "GET",
-                        data: { sku: selectedSku },
-                        success: function (response) {
-                            if (response.success) {
-                                // Điền dữ liệu vào form
-                                $('#txtCode').val(selectedSku);
-                                $('#txtName').val(response.name);
-                                $('#txtSellPrice').val(response.sellPrice);
-                                $('#txtImportPrice').val(response.importPrice);
+                        // Xóa trắng các ô còn lại để nhập mới
+                        $('#txtName').val('').attr('placeholder', 'Nhập tên sản phẩm mới...').focus();
+                        $('#txtSellPrice').val('0');
+                        $('#txtImportPrice').val('0');
 
-                                // Điền Loại hàng (Category) và trigger sự kiện change cho Select2 cập nhật
-                                $('select[name="Order.Category"]').val(response.category).trigger('change');
-
-                                // Focus vào ô số lượng
-                                $('input[name="Order.Quantity"]').select();
+                        // Reset dropdown Loại hàng
+                        $('select[name="Order.Category"]').val('').trigger('change');
+                    }
+                    // TRƯỜNG HỢP 2: SẢN PHẨM CÓ SẴN (Gọi Ajax lấy dữ liệu)
+                    else {
+                        $('#txtName').attr('placeholder', 'Đang tải thông tin...');
+                        $.ajax({
+                            url: '?handler=ProductInfo',
+                            type: "GET",
+                            data: { sku: selectedSku },
+                            success: function (response) {
+                                if (response.success) {
+                                    // Điền dữ liệu vào form
+                                    $('#txtCode').val(selectedSku);
+                                    $('#txtName').val(response.name);
+                                    $('#txtSellPrice').val(response.sellPrice);
+                                    $('#txtImportPrice').val(response.importPrice);
+                                    $('select[name="Order.Category"]').val(response.category).trigger('change');
+                                    $('input[name="Order.Quantity"]').select();
+                                }
                             }
-                        },
-                        error: function() {
-                            alert("Không thể tải thông tin sản phẩm.");
-                        }
-                    });
+                        });
+                    }
+                } else {
+                    // Nếu xóa chọn (ấn dấu X)
+                    $('#txtCode').val('');
+                    $('#txtName').val('').attr('placeholder', 'Tên sản phẩm');
+                    $('#txtSellPrice').val('');
                 }
             });
 
@@ -285,21 +300,17 @@
             $('#txtPhone').on('blur', function() {
                 var phone = $(this).val();
                 if (phone && phone.length > 8) {
-
-                    $('#phoneStatus').html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang kiểm tra...');
-
+                    $('#phoneStatus').html('<div class="spinner-border spinner-border-sm text-primary"></div> Đang kiểm tra...');
                     $.ajax({
                         url: '?handler=CheckPhone',
                         type: "GET",
                         data: { phone: phone },
                         success: function (response) {
                             if (response.found) {
-                                // Khách cũ: Điền thông tin
                                 $('#txtCustName').val(response.name);
                                 $('#txtAddress').val(response.address);
-                                $('#phoneStatus').html('<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Khách hàng thân thiết</span>');
+                                $('#phoneStatus').html('<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Khách hàng cũ</span>');
                             } else {
-                                // Khách mới
                                 $('#phoneStatus').html('<span class="text-primary fw-bold"><i class="bi bi-person-plus"></i> Khách hàng mới (Tự động tạo)</span>');
                             }
                         }
@@ -308,15 +319,12 @@
             });
         });
 
-        // --- 4. CÁC HÀM XỬ LÝ MODAL (Nằm ngoài document.ready để HTML gọi được) ---
-
+        // --- 4. HÀM MODAL GIỮ NGUYÊN ---
         function openModal(type, title) {
             $('#lblAttrType').text(title);
-            $('#hdnAttrType').val(type); // type = Source, Warehouse, hoặc Category
+            $('#hdnAttrType').val(type);
             $('#txtAttrValue').val('');
             myModal.show();
-
-            // Focus vào ô nhập liệu sau khi modal hiện ra
             setTimeout(() => $('#txtAttrValue').focus(), 500);
         }
 
@@ -324,13 +332,8 @@
             var type = $('#hdnAttrType').val();
             var value = $('#txtAttrValue').val();
 
-            if(!value) {
-                alert("Vui lòng nhập tên cần thêm!");
-                $('#txtAttrValue').focus();
-                return;
-            }
+            if(!value) { alert("Vui lòng nhập tên!"); $('#txtAttrValue').focus(); return; }
 
-            // Lấy Token chống giả mạo
             var token = $('input[name="__RequestVerificationToken"]').val();
 
             $.ajax({
@@ -340,19 +343,13 @@
                 headers: { "RequestVerificationToken": token },
                 success: function (response) {
                     if (response.success) {
-                        // Tạo option mới và chọn nó luôn
                         var newOption = new Option(value, value, true, true);
                         var targetSelect = '#ddl' + type;
-
                         $(targetSelect).append(newOption).trigger('change');
-
                         myModal.hide();
                     } else {
-                        alert("Lỗi: " + (response.message || "Không thể lưu dữ liệu"));
+                        alert("Lỗi: " + (response.message || "Không thể lưu"));
                     }
-                },
-                error: function() {
-                    alert("Lỗi kết nối server!");
                 }
             });
         }

@@ -59,6 +59,38 @@ namespace OrdersManager.Pages.Orders
                 _service.AddCustomer(newCustomer);
             }
 
+            // --- 2. LOGIC TỰ ĐỘNG THÊM SẢN PHẨM (MỚI THÊM) ---
+            // Chỉ thực hiện nếu có nhập Mã Code
+            if (!string.IsNullOrEmpty(Order.Code))
+            {
+                // Chuẩn hóa SKU về chữ in hoa để so sánh chính xác
+                string sku = Order.Code.Trim().ToUpper();
+                Order.Code = sku; // Lưu lại mã in hoa vào đơn hàng luôn cho đẹp
+
+                // Lấy danh sách sản phẩm hiện có để kiểm tra
+                var allProducts = _service.GetProducts();
+
+                // Kiểm tra xem SKU này đã có chưa?
+                bool productExists = allProducts.Any(p => p.Sku == sku);
+
+                if (!productExists)
+                {
+                    // Chưa có -> Tạo mới Product từ thông tin Đơn hàng
+                    var newProduct = new Product
+                    {
+                        Sku = sku,
+                        Name = Order.ProductName,
+                        Category = Order.Category ?? "Chưa phân loại", // Nếu quên chọn loại thì để mặc định
+                        SellingPrice = Order.SellingPrice,
+                        ImportPrice = Order.ImportPrice // Giá vốn (Nếu form bạn có input hidden này)
+                    };
+
+                    // Lưu vào Sheet SanPham
+                    _service.AddProduct(newProduct);
+                }
+            }
+            // -----------------------------------------------------
+
             // Sinh ID và lưu
             Order.Id = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
             _service.Add(Order);

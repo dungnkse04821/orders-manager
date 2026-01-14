@@ -1,0 +1,45 @@
+﻿@page
+@model OrdersManager.Pages.Products.EditModel
+@{
+    ViewData["Title"] = "Sửa sản phẩm";
+}
+
+<div class="container mt-3" style="max-width: 600px;">
+    <h3>Cập nhật sản phẩm</h3>
+    <hr />
+    <form method="post">
+        <div class="mb-3">
+            <label asp-for="Product.Sku" class="form-label fw-bold">Mã SKU</label>
+            <input asp-for="Product.Sku" class="form-control bg-light fw-bold" readonly />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Product.Name" class="form-label">Tên sản phẩm</label>
+            <input asp-for="Product.Name" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Product.Category" class="form-label">Loại hàng</label>
+            <select asp-for="Product.Category" class="form-select">
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-6 mb-3">
+                <label asp-for="Product.ImportPrice" class="form-label">Giá nhập (k)</label>
+                <input asp-for="Product.ImportPrice" class="form-control" type="number" />
+            </div>
+            <div class="col-6 mb-3">
+                <label asp-for="Product.SellingPrice" class="form-label">Giá bán (k)</label>
+                <input asp-for="Product.SellingPrice" class="form-control" type="number" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-3">Cập nhật</button>
+        <a asp-page="./Index" class="btn btn-link w-100 text-center text-decoration-none mt-2">Quay lại</a>
+    </form>
+</div>

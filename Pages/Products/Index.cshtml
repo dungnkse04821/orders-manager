@@ -1,0 +1,62 @@
+﻿@page
+@model OrdersManager.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <h2 class="text-primary"><i class="bi bi-box2-fill"></i> Danh sách sản phẩm</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-page="./Create" class="btn btn-success"><i class="bi bi-plus-lg"></i> Thêm sản phẩm</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">
+                <input asp-for="SearchTerm" class="form-control" placeholder="Tìm kiếm theo tên hoặc mã SKU..." />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive bg-white shadow-sm rounded">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>SKU</th>
+                <th>Tên sản phẩm</th>
+                <th>Loại hàng</th>
+                <th class="text-end">Giá nhập</th>
+                <th class="text-end">Giá bán</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.Products)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@p.Sku</td>
+                    <td>@p.Name</td>
+                    <td><span class="badge bg-secondary">@p.Category</span></td>
+                    <td class="text-end text-muted">@p.ImportPrice.ToString("N0")</td>
+                    <td class="text-end fw-bold text-success">@p.SellingPrice.ToString("N0")</td>
+                    <td class="text-center">
+                        <a asp-page="./Edit" asp-route-sku="@p.Sku" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" asp-page-handler="Delete" asp-route-sku="@p.Sku" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này?');">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

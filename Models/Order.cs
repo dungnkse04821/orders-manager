@@ -21,7 +21,7 @@ namespace OrdersManager.Models
         public string Warehouse { get; set; }
 
         // Cột E: Code
-        [DisplayName("Mã vận đơn/Code")]
+        [DisplayName("Mã sản phẩm/Code")]
         public string Code { get; set; } = string.Empty;
 
         // Cột F: Loại (Quần, Áo...)
@@ -40,8 +40,8 @@ namespace OrdersManager.Models
         [DisplayName("Size")]
         public string Size { get; set; }
 
-        // Cột J: Giá bán (1000đ)
-        [DisplayName("Giá bán (1000đ)")]
+        // Cột J: Giá bán 
+        [DisplayName("Giá bán")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal SellingPrice { get; set; }
 
@@ -84,7 +84,7 @@ namespace OrdersManager.Models
         public DateTime? PaymentDate { get; set; }
 
         // Cột S: Đơn giá nhập
-        [DisplayName("Giá nhập (1000đ)")]
+        [DisplayName("Giá nhập")]
         [DisplayFormat(DataFormatString = "{0:N0}")]
         public decimal ImportPrice { get; set; }
 

@@ -107,10 +107,10 @@ namespace OrdersManager
             var valueRange = new ValueRange();
 
             // Xử lý ngày tháng về string
-            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "";
-            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy") : "";
-            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy") : "";
-
+            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            var phoneNumber = "'" + order.PhoneNumber;
             // QUAN TRỌNG: Với các cột công thức, ta truyền null hoặc string rỗng để Google Sheet tự tính (nếu bạn set ArrayFormula trong sheet)
             // Hoặc ta truyền chính xác công thức vào (ví dụ "=J2*K2"). 
             // Ở đây tôi dùng cách set công thức R1C1 notation (tương đối) để đơn giản.
@@ -138,7 +138,7 @@ namespace OrdersManager
                 "=R:R*K:K",         // T (Formula: Giá Nhập * SL)
                 "=L:L-T:T",          // U (Formula: Tổng tiền bán - Thành tiền nhập
                 order.Status,       // V
-                order.PhoneNumber,  // W (Mới)
+                phoneNumber,  // W (Mới)
                 order.ShippingAddress // X (Mới)
             };
 
@@ -206,10 +206,10 @@ namespace OrdersManager
             var range = $"{SheetName}!A{rowId}:X{rowId}";
 
             // Xử lý ngày tháng về string
-            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "";
-            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy") : "";
-            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy") : "";
-
+            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+            var phoneNumber = "'" + order.PhoneNumber;
 
             // 1. Update Hàng hóa (A->K)
             UpdateRange(rowId, "A", "K", new List<object> {
@@ -225,7 +225,7 @@ namespace OrdersManager
 
             // 3. Update SĐT & Địa chỉ (W->X) <--- QUAN TRỌNG
             UpdateRange(rowId, "V", "X", new List<object> {
-                order.Status, order.PhoneNumber, order.ShippingAddress
+                order.Status, phoneNumber, order.ShippingAddress
             });
 
 
@@ -360,13 +360,13 @@ namespace OrdersManager
             // Tìm dòng trong sheet KhachHang
             int rowId = FindRowId("KhachHang", customer.Id);
             if (rowId == -1) return;
-
+            var phoneNumber = "'" + customer.PhoneNumber;
             var range = $"KhachHang!A{rowId}:E{rowId}";
             var valueRange = new ValueRange();
             var objectList = new List<object>() {
                                 customer.Id, // Giữ nguyên ID
                                 customer.FullName,
-                                customer.PhoneNumber,
+                                phoneNumber,
                                 customer.Email,
                                 customer.Address,
                                 customer.Note
@@ -468,6 +468,125 @@ namespace OrdersManager
                 }
             }
             return list;
+        }
+
+        public void AddProduct(Product p)
+        {
+            var valueRange = new ValueRange();
+            var objectList = new List<object>() {
+                p.Sku.ToUpper(),
+                p.Name,
+                p.Category,
+                p.ImportPrice,
+                p.SellingPrice
+            };
+            valueRange.Values = new List<IList<object>> { objectList };
+
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "SanPham!A:E");
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            appendRequest.Execute();
+        }
+
+        // 3. Cập nhật Sản phẩm
+        public void UpdateProduct(Product p)
+        {
+            int rowId = FindRowId("SanPham", p.Sku);
+            if (rowId == -1) return;
+
+            // Update từ cột B (Tên) đến E (Giá bán). Cột A (SKU) giữ nguyên để làm khóa.
+            var range = $"SanPham!B{rowId}:E{rowId}";
+
+            var valueRange = new ValueRange();
+            var objectList = new List<object>() {
+                p.Name,
+                p.Category,
+                p.ImportPrice,
+                p.SellingPrice
+            };
+            valueRange.Values = new List<IList<object>> { objectList };
+
+            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            updateRequest.Execute();
+        }
+
+        // 4. Xóa Sản phẩm
+        public void DeleteProduct(string sku)
+        {
+            int rowId = FindRowId("SanPham", sku);
+            if (rowId == -1) return;
+
+            var requestBody = new BatchUpdateSpreadsheetRequest();
+            requestBody.Requests = new List<Request>();
+            requestBody.Requests.Add(new Request
+            {
+                DeleteDimension = new DeleteDimensionRequest
+                {
+                    Range = new DimensionRange
+                    {
+                        SheetId = 309597087,
+                        Dimension = "ROWS",
+                        StartIndex = rowId - 1,
+                        EndIndex = rowId
+                    }
+                }
+            });
+
+            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+            batchRequest.Execute();
+        }
+
+        // Cập nhật hàm này trong GoogleSheetService.cs
+
+        public void BulkUpdateOrder(string id, string newStatus, DateTime? arrivalDate, decimal? importPrice, decimal? paidAmount)
+        {
+            int rowId = FindRowId(SheetName, id);
+            if (rowId == -1) return;
+
+            // 1. Update Trạng thái (Cột V)
+            var rangeStatus = $"{SheetName}!V{rowId}";
+            var reqStatus = service.Spreadsheets.Values.Update(
+                new ValueRange { Values = new List<IList<object>> { new List<object> { newStatus } } },
+                SpreadsheetId, rangeStatus);
+            reqStatus.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            reqStatus.Execute();
+
+            // 2. Xử lý logic HÀNG VỀ (Cập nhật Ngày về & Giá vốn)
+            if (arrivalDate.HasValue)
+            {
+                var reqDate = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { arrivalDate.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) } } },
+                    SpreadsheetId, $"{SheetName}!Q{rowId}");
+                reqDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqDate.Execute();
+            }
+            if (importPrice.HasValue)
+            {
+                var reqPrice = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { importPrice.Value } } },
+                    SpreadsheetId, $"{SheetName}!S{rowId}");
+                reqPrice.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqPrice.Execute();
+            }
+
+            // 3. Xử lý logic ĐÃ GIAO (Cập nhật Tiền đã trả & Ngày thanh toán)
+            if (newStatus == "Đã giao" && paidAmount.HasValue)
+            {
+                // Cập nhật Cột N (Deposit/Đã thanh toán)
+                var reqPaid = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { paidAmount.Value } } },
+                    SpreadsheetId, $"{SheetName}!N{rowId}");
+                reqPaid.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqPaid.Execute();
+
+                // Cập nhật Cột R (Ngày thanh toán - PaymentDate) -> Set là hôm nay
+                var today = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                var reqPayDate = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { today } } },
+                    SpreadsheetId, $"{SheetName}!R{rowId}");
+                reqPayDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqPayDate.Execute();
+            }
         }
     }
 }
