@@ -23,19 +23,38 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-3">
         <div class="card bg-success text-white shadow-sm">
             <div class="card-body p-3">
-                <small class="text-white-50">Doanh thu dự kiến</small>
-                <h3 class="mb-0 fw-bold">@Model.Orders.Sum(x => x.TotalAmount).ToString("#,##0") k</h3>
+                <small class="text-white-50">Doanh thu thực tế</small>
+                <h3 class="mb-0 fw-bold">
+                    @Model.Orders.Where(x => x.Status != "Hủy").Sum(x=>
+                        x.TotalAmount).ToString("#,##0")
+                </h3>
             </div>
         </div>
     </div>
+
     <div class="col-md-3">
         <div class="card bg-info text-white shadow-sm">
             <div class="card-body p-3">
                 <small class="text-white-50">Lợi nhuận ước tính</small>
-                <h3 class="mb-0 fw-bold">@Model.Orders.Sum(x => x.Profit).ToString("#,##0") k</h3>
+                <h3 class="mb-0 fw-bold">
+                    @Model.Orders.Where(x => x.Status != "Hủy").Sum(x=>
+                        x.Profit).ToString("#,##0")
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow-sm">
+            <div class="card-body p-3">
+                <small class="text-white-50">Đơn đã hủy</small>
+                <h3 class="mb-0 fw-bold">
+                    @Model.Orders.Count(x => x.Status == "Hủy")
+                </h3>
             </div>
         </div>
     </div>

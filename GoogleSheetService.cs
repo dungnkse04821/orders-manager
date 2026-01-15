@@ -135,7 +135,7 @@ namespace OrdersManager
                 arrDate,            // Q
                 payDate,            // R
                 order.ImportPrice,  // S
-                "=R:R*K:K",         // T (Formula: Giá Nhập * SL)
+                "=S:S*K:K",         // T (Formula: Giá Nhập * SL)
                 "=L:L-T:T",          // U (Formula: Tổng tiền bán - Thành tiền nhập
                 order.Status,       // V
                 phoneNumber,  // W (Mới)
