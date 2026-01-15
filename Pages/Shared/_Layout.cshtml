@@ -22,15 +22,43 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Orders/Index">Home</a>
+                        </li> *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Products/Index">
+                                <i class="bi bi-box2"></i> Sản phẩm
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark"
+                               href="#"
+                               id="customerDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="bi bi-people-fill"></i> Khách hàng
+                            </a>
+
+                            <ul class="dropdown-menu" aria-labelledby="customerDropdown">
+                                <li>
+                                    <a class="dropdown-item" asp-page="/Customers/Customer">
+                                        Danh sách khách hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-page="/Customers/Index">
+                                        Lịch sử mua sắm
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Orders/Incoming">
                                 <i class="bi bi-truck"></i> Trạng thái hàng
                             </a>
                         </li>
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Customers/Index">
                                 <i class="bi bi-people-fill"></i> Khách hàng
                             </a>
@@ -39,12 +67,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Customers/Customer">
                                 <i class="bi bi-people-fill"></i> Khách hàng 2
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Products/Index">
-                                <i class="bi bi-box2"></i> Sản phẩm
-                            </a>
-                        </li>
+                        </li> *@
                         @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li> *@

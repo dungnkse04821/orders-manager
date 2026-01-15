@@ -49,7 +49,7 @@ namespace OrdersManager.Pages.Orders
 
         public void OnGet()
         {
-            if (string.IsNullOrEmpty(StatusFilter)) StatusFilter = "Đang về";
+            if (string.IsNullOrEmpty(StatusFilter)) StatusFilter = "ALL";
 
             var query = _service.GetAll().AsQueryable();
 
@@ -65,7 +65,8 @@ namespace OrdersManager.Pages.Orders
                 string term = SearchTerm.ToLower();
                 query = query.Where(o =>
                     (o.CustomerName != null && o.CustomerName.ToLower().Contains(term)) ||
-                    (o.PhoneNumber != null && o.PhoneNumber.Contains(term))
+                    (o.PhoneNumber != null && o.PhoneNumber.Contains(term)) ||
+                    (o.Code != null && o.Code.ToLower().Contains(term))
                 );
             }
 
