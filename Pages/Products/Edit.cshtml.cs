@@ -12,6 +12,8 @@ namespace OrdersManager.Pages.Products
         [BindProperty]
         public Product Product { get; set; }
         public List<string> Categories { get; set; }
+        public List<string> Sources { get; set; }
+        public List<string> Warehouses { get; set; }
 
         public IActionResult OnGet(string sku)
         {
@@ -21,6 +23,8 @@ namespace OrdersManager.Pages.Products
             if (Product == null) return RedirectToPage("./Index");
 
             Categories = _service.GetConfigData("Config_LoaiHang");
+            Sources = _service.GetConfigData("Config_NguonHang");
+            Warehouses = _service.GetConfigData("Config_Kho");
             return Page();
         }
 

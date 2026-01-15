@@ -81,7 +81,9 @@ namespace OrdersManager.Pages.Orders
                         Name = Order.ProductName,
                         Category = Order.Category ?? "Khác",
                         SellingPrice = Order.SellingPrice,
-                        ImportPrice = Order.ImportPrice
+                        ImportPrice = Order.ImportPrice,
+                        Source = Order.Source,
+                        Warehouse = Order.Warehouse
                     };
                     _service.AddProduct(newProduct);
                 }

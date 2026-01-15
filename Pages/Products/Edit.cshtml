@@ -27,7 +27,28 @@
                 }
             </select>
         </div>
-
+        <div class="row mb-3">
+            <div class="col-6">
+                <label asp-for="Product.Source" class="form-label">Nguồn hàng</label>
+                <select asp-for="Product.Source" class="form-select">
+                    <option value="">-- Chọn --</option>
+                    @foreach (var s in Model.Sources)
+                    {
+                        <option value="@s">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6">
+                <label asp-for="Product.Warehouse" class="form-label">Kho hàng</label>
+                <select asp-for="Product.Warehouse" class="form-select">
+                    <option value="">-- Chọn --</option>
+                    @foreach (var w in Model.Warehouses)
+                    {
+                        <option value="@w">@w</option>
+                    }
+                </select>
+            </div>
+        </div>
         <div class="row">
             <div class="col-6 mb-3">
                 <label asp-for="Product.ImportPrice" class="form-label">Giá nhập (k)</label>

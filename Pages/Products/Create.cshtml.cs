@@ -13,10 +13,14 @@ namespace OrdersManager.Pages.Products
         public Product Product { get; set; }
 
         public List<string> Categories { get; set; }
+        public List<string> Sources { get; set; }
+        public List<string> Warehouses { get; set; }
 
         public void OnGet()
         {
             Categories = _service.GetConfigData("Config_LoaiHang");
+            Sources = _service.GetConfigData("Config_NguonHang");
+            Warehouses = _service.GetConfigData("Config_Kho");
         }
 
         public IActionResult OnPost()

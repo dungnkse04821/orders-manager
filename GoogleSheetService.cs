@@ -445,7 +445,7 @@ namespace OrdersManager
 
         public List<Product> GetProducts()
         {
-            var range = "SanPham!A:E";
+            var range = "SanPham!A:G";
             var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
             var response = request.Execute();
             var values = response.Values;
@@ -463,7 +463,9 @@ namespace OrdersManager
                         Name = row.Count > 1 ? row[1].ToString() : "",
                         Category = row.Count > 2 ? row[2].ToString() : "",
                         ImportPrice = row.Count > 3 ? ParseDecimal(row[3]) : 0,
-                        SellingPrice = row.Count > 4 ? ParseDecimal(row[4]) : 0
+                        SellingPrice = row.Count > 4 ? ParseDecimal(row[4]) : 0,
+                        Source = row.Count > 5 ? row[5].ToString() : "",
+                        Warehouse = row.Count > 6 ? row[6].ToString() : "",
                     });
                 }
             }
@@ -478,7 +480,9 @@ namespace OrdersManager
                 p.Name,
                 p.Category,
                 p.ImportPrice,
-                p.SellingPrice
+                p.SellingPrice,
+                p.Source,
+                p.Warehouse
             };
             valueRange.Values = new List<IList<object>> { objectList };
 
@@ -501,7 +505,9 @@ namespace OrdersManager
                 p.Name,
                 p.Category,
                 p.ImportPrice,
-                p.SellingPrice
+                p.SellingPrice,
+                p.Source,
+                p.Warehouse
             };
             valueRange.Values = new List<IList<object>> { objectList };
 

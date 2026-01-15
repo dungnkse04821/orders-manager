@@ -33,6 +33,7 @@
                 <th>SKU</th>
                 <th>Tên sản phẩm</th>
                 <th>Loại hàng</th>
+                <th>Thông tin kho</th>
                 <th class="text-end">Giá nhập</th>
                 <th class="text-end">Giá bán</th>
                 <th class="text-center">Thao tác</th>
@@ -45,6 +46,10 @@
                     <td class="fw-bold text-primary">@p.Sku</td>
                     <td>@p.Name</td>
                     <td><span class="badge bg-secondary">@p.Category</span></td>
+                    <td>
+                        <div class="small text-muted">Nguồn: @p.Source</div>
+                        <div class="small text-muted">Kho: @p.Warehouse</div>
+                    </td>
                     <td class="text-end text-muted">@p.ImportPrice.ToString("N0")</td>
                     <td class="text-end fw-bold text-success">@p.SellingPrice.ToString("N0")</td>
                     <td class="text-center">

@@ -82,7 +82,9 @@ namespace OrdersManager.Pages.Orders
                         Name = Order.ProductName,
                         Category = Order.Category ?? "Chưa phân loại", // Nếu quên chọn loại thì để mặc định
                         SellingPrice = Order.SellingPrice,
-                        ImportPrice = Order.ImportPrice // Giá vốn (Nếu form bạn có input hidden này)
+                        ImportPrice = Order.ImportPrice,
+                        Source = Order.Source,
+                        Warehouse = Order.Warehouse
                     };
 
                     // Lưu vào Sheet SanPham
