@@ -17,11 +17,11 @@ namespace OrdersManager.Pages.Orders
         public List<string> Warehouses { get; set; }
         public List<string> Categories { get; set; }
         public List<Product> ProductList { get; set; }
+        public List<Customer> CustomerList { get; set; }
         public IActionResult OnGet(string id)
         {
             if (id == null) return RedirectToPage("./Index");
 
-            // Tìm đơn hàng theo ID
             Order = _service.GetAll().FirstOrDefault(o => o.Id == id);
 
             if (Order == null) return RedirectToPage("./Index");
@@ -100,6 +100,7 @@ namespace OrdersManager.Pages.Orders
             Warehouses = _service.GetConfigData("Config_Kho");
             Categories = _service.GetConfigData("Config_LoaiHang");
             ProductList = _service.GetProducts();
+            CustomerList = _service.GetCustomers();
         }
 
         // 1. API Trả về thông tin sản phẩm (Cho Ajax gọi)
@@ -116,7 +117,9 @@ namespace OrdersManager.Pages.Orders
                     name = product.Name,
                     category = product.Category,
                     sellPrice = product.SellingPrice,
-                    importPrice = product.ImportPrice
+                    importPrice = product.ImportPrice,
+                    source = product.Source,
+                    warehouse = product.Warehouse
                 });
             }
             return new JsonResult(new { success = false });

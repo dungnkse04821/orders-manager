@@ -24,11 +24,10 @@ namespace OrdersManager.Pages.Customers
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
-                // Lọc theo Tên hoặc Số điện thoại hoặc email
+                // Lọc theo Tên hoặc Số điện thoại
                 data = data.Where(c =>
                     c.FullName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    c.PhoneNumber.Contains(SearchTerm) ||
-                    !string.IsNullOrEmpty(c.Email) && c.Email.Contains(SearchTerm)
+                    c.PhoneNumber.Contains(SearchTerm)
                 ).ToList();
             }
 

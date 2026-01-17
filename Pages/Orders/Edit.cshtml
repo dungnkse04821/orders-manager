@@ -15,185 +15,191 @@
     <input type="hidden" asp-for="Order.Id" />
 
     <div class="row">
-        <div class="col-md-6">
-            <h5 class="text-primary mb-3">1. Thông tin sản phẩm</h5>
+        <div class="col-lg-7">
 
-            <div class="card bg-light mb-4 border-primary">
-                <div class="card-body py-2">
-                    <label class="fw-bold mb-1 text-primary"><i class="bi bi-search"></i> Đổi sản phẩm khác:</label>
-                    <select id="ddlQuickProduct" class="form-select select2-product">
-                        <option value="">-- Gõ tên hoặc mã SKU để tìm --</option>
-                        @foreach (var p in Model.ProductList)
-                        {
-                            <option value="@p.Sku">@p.DisplayText</option>
-                        }
-                    </select>
-                    <small class="text-muted fst-italic">* Chọn sản phẩm mới sẽ ghi đè thông tin bên dưới.</small>
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-primary text-white fw-bold">
+                    <i class="bi bi-box-seam"></i> 1. Sản phẩm
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Code" class="form-label"></label>
-                    <input asp-for="Order.Code" class="form-control fw-bold" id="txtCode" placeholder="Mã sản phẩm" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.ProductName" class="form-label"></label>
-                    <input asp-for="Order.ProductName" class="form-control" id="txtName" placeholder="Tên sản phẩm" />
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Order.Category" class="form-label"></label>
-                    <div class="input-group">
-                        <select asp-for="Order.Category" class="form-select select2-dropdown" id="ddlCategory">
-                            <option value="">-- Loại --</option>
-                            @foreach (var item in Model.Categories)
+                <div class="card-body bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Tìm nhanh sản phẩm:</label>
+                        <select id="ddlQuickProduct" class="form-select select2-product">
+                            <option value="">-- Gõ tên hoặc mã SKU --</option>
+                            @foreach (var p in Model.ProductList)
                             {
-                                <option value="@item">@item</option>
+                                <option value="@p.Sku">@p.DisplayText</option>
                             }
                         </select>
-                        <button type="button" class="btn btn-outline-secondary" onclick="openModal('Category', 'Loại hàng')">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
                     </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Order.Color" class="form-label"></label>
-                    <input asp-for="Order.Color" class="form-control" placeholder="Màu" />
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Order.Size" class="form-label"></label>
-                    <input asp-for="Order.Size" class="form-control" placeholder="Size" />
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Source" class="form-label"></label>
-                    <div class="input-group">
-                        <select asp-for="Order.Source" class="form-select select2-dropdown" id="ddlSource">
-                            <option value="">-- Nguồn --</option>
-                            @foreach (var item in Model.Sources)
-                            {
-                                <option value="@item">@item</option>
-                            }
-                        </select>
-                        <button type="button" class="btn btn-outline-secondary" onclick="openModal('Source', 'Nguồn hàng')">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Order.Code" class="form-label">Mã Code <span class="text-danger">*</span></label>
+                            <input asp-for="Order.Code" class="form-control fw-bold" id="txtCode" placeholder="Mã SP" required />
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="Order.ProductName" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="Order.ProductName" class="form-control" id="txtName" placeholder="Tên sản phẩm" />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Warehouse" class="form-label"></label>
-                    <div class="input-group">
-                        <select asp-for="Order.Warehouse" class="form-select select2-dropdown" id="ddlWarehouse">
-                            <option value="">-- Kho --</option>
-                            @foreach (var item in Model.Warehouses)
-                            {
-                                <option value="@item">@item</option>
-                            }
-                        </select>
-                        <button type="button" class="btn btn-outline-secondary" onclick="openModal('Warehouse', 'Kho')">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Order.Category" class="form-label">Loại hàng</label>
+                            <div class="input-group">
+                                <select asp-for="Order.Category" class="form-select select2-dropdown" id="ddlCategory">
+                                    <option value="">-- Chọn --</option>
+                                    @foreach (var item in Model.Categories)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" onclick="openModal('Category', 'Loại hàng')"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Order.Color" class="form-label">Màu sắc</label>
+                            <input asp-for="Order.Color" class="form-control" placeholder="Màu" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Order.Size" class="form-label">Kích thước</label>
+                            <input asp-for="Order.Size" class="form-control" placeholder="Size" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.Source" class="form-label">Nguồn nhập</label>
+                            <div class="input-group">
+                                <select asp-for="Order.Source" class="form-select select2-dropdown" id="ddlSource">
+                                    <option value="">-- Chọn nguồn --</option>
+                                    @foreach (var item in Model.Sources)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" onclick="openModal('Source', 'Nguồn hàng')"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.Warehouse" class="form-label">Kho hàng</label>
+                            <div class="input-group">
+                                <select asp-for="Order.Warehouse" class="form-select select2-dropdown" id="ddlWarehouse">
+                                    <option value="">-- Chọn kho --</option>
+                                    @foreach (var item in Model.Warehouses)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" onclick="openModal('Warehouse', 'Kho')"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Status" class="form-label"></label>
-                    <div class="input-group">
-                        <select asp-for="Order.Status" class="form-select select2-dropdown" id="ddlStatus">
-                            <option value="">-- Trạng thái --</option>
-                            @foreach (var s in OrdersManager.Models.OrderStatusList.All)
-                            {
-                                <option value="@s">@s</option>
-                            }
-                        </select>
-                    </div>
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="bi bi-currency-dollar"></i> 3. Tài chính
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.OrderDate" class="form-label"></label>
-                    <input asp-for="Order.OrderDate" class="form-control" type="date" />
-                </div>
-                @* <div class="card bg-warning bg-opacity-10 mb-3 border-warning">
-                    <div class="card-body py-2">
-                        <label asp-for="Order.Status" class="form-label fw-bold text-dark">Trạng thái đơn hàng</label>
-                        <select asp-for="Order.Status" class="form-select fw-bold text-primary">
-                            @foreach (var s in OrdersManager.Models.OrderStatusList.All)
-                            {
-                                <option value="@s">@s</option>
-                            }
-                        </select>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.SellingPrice" class="form-label">Giá bán</label>
+                            <div class="input-group">
+                                <input asp-for="Order.SellingPrice" class="form-control fw-bold text-primary fs-5" type="number" id="txtSellPrice" />
+                                <span class="input-group-text">.000 đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.Quantity" class="form-label">Số lượng</label>
+                            <input asp-for="Order.Quantity" class="form-control fw-bold text-center fs-5" type="number" min="1" value="1" />
+                        </div>
                     </div>
-                </div> *@
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.Deposit" class="form-label">Đã cọc/Thanh toán</label>
+                            <div class="input-group">
+                                <input asp-for="Order.Deposit" class="form-control" type="number" />
+                                <span class="input-group-text">.000 đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Order.Discount" class="form-label">Giảm giá</label>
+                            <div class="input-group">
+                                <input asp-for="Order.Discount" class="form-control" type="number" />
+                                <span class="input-group-text">.000 đ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input asp-for="Order.ImportPrice" type="hidden" id="txtImportPrice" value="0" />
+                </div>
             </div>
 
-            <input asp-for="Order.ImportPrice" type="hidden" id="txtImportPrice" />
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-5">
 
-            <div class="card bg-light mb-4">
-                <div class="card-header fw-bold text-success">
-                    <i class="bi bi-person-lines-fill"></i> 2. Thông tin khách hàng
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-info text-white fw-bold">
+                    <i class="bi bi-person-circle"></i> 2. Khách hàng
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Tìm khách hàng:</label>
+                        <select id="ddlQuickCustomer" class="form-select select2-customer">
+                            <option value="">-- Gõ Tên hoặc SĐT --</option>
+                            @foreach (var c in Model.CustomerList)
+                            {
+                                <option value="@c.PhoneNumber"
+                                        data-name="@c.FullName"
+                                        data-address="@c.Address">
+                                    @c.FullName - @c.PhoneNumber
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="Order.PhoneNumber" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input asp-for="Order.PhoneNumber" class="form-control" id="txtPhone" placeholder="Nhập SĐT và bấm Tab..." required />
-                        </div>
-                        <small class="fst-italic" id="phoneStatus"></small>
+                        <input asp-for="Order.PhoneNumber" class="form-control fw-bold" id="txtPhone" placeholder="SĐT khách..." required />
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Order.CustomerName" class="form-label">Tên khách hàng</label>
-                        <input asp-for="Order.CustomerName" class="form-control" id="txtCustName" required />
+                        <input asp-for="Order.CustomerName" class="form-control" id="txtCustName" placeholder="Tên khách..." />
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Order.ShippingAddress" class="form-label">Địa chỉ giao hàng</label>
-                        <textarea asp-for="Order.ShippingAddress" class="form-control" id="txtAddress" rows="2"></textarea>
+                        <textarea asp-for="Order.ShippingAddress" class="form-control" id="txtAddress" rows="3" placeholder="Địa chỉ chi tiết..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <h5 class="text-success mb-3">3. Tài chính</h5>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.SellingPrice" class="form-label"></label>
-                    <div class="input-group">
-                        <input asp-for="Order.SellingPrice" class="form-control fw-bold text-primary" type="number" id="txtSellPrice" />
-                        <span class="input-group-text">k</span>
-                    </div>
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    <i class="bi bi-info-circle"></i> 4. Thông tin khác
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Quantity" class="form-label"></label>
-                    <input asp-for="Order.Quantity" class="form-control fw-bold" type="number" min="1" />
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Order.Status" class="form-label">Trạng thái đơn</label>
+                        <select asp-for="Order.Status" class="form-select select2-dropdown" id="ddlStatus">
+                            @foreach (var s in OrdersManager.Models.OrderStatusList.All)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Order.OrderDate" class="form-label">Ngày đặt hàng</label>
+                        <input asp-for="Order.OrderDate" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Deposit" class="form-label"></label>
-                    <div class="input-group">
-                        <input asp-for="Order.Deposit" class="form-control" type="number" />
-                        <span class="input-group-text">k</span>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Order.Discount" class="form-label"></label>
-                    <div class="input-group">
-                        <input asp-for="Order.Discount" class="form-control" type="number" />
-                        <span class="input-group-text">k</span>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -229,21 +235,21 @@
         var myModal;
 
         $(document).ready(function() {
-            // --- 1. KHỞI TẠO CÁC DROPDOWN ---
-
-            // Dropdown thường
+            // --- 1. KHỞI TẠO CÁC DROPDOWN CƠ BẢN ---
             $('.select2-dropdown').select2({
-                theme: 'bootstrap-5',
-                width: 'style',
-                placeholder: "Chọn..."
+                theme: 'bootstrap-5', width: 'style', placeholder: "Chọn..."
             });
 
-            // Ô TÌM SẢN PHẨM (QUAN TRỌNG: Cấu hình giống hệt trang Create)
+            myModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
+
+            // ===============================================
+            // A. TÌM KIẾM SẢN PHẨM (Code chuẩn)
+            // ===============================================
             var $productSelect = $('.select2-product').select2({
                 theme: 'bootstrap-5',
-                placeholder: "Gõ Mã SP để đổi hoặc nhập Mã mới...",
+                placeholder: "Gõ Mã SP để tìm hoặc nhập mới...",
                 allowClear: true,
-                tags: true, // Cho phép nhập mã mới
+                tags: true,
                 createTag: function (params) {
                     var term = $.trim(params.term);
                     if (term === '') return null;
@@ -251,123 +257,174 @@
                 }
             });
 
-            myModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
-
-            // --- 2. LOGIC ĐỒNG BỘ KHI MỚI VÀO TRANG (Load Initial) ---
-            // Lấy mã code đang có trong ô input (dữ liệu cũ của đơn hàng)
-            var currentCode = $('#txtCode').val();
-            if (currentCode) {
-                // Set giá trị cho Select2 nhưng KHÔNG kích hoạt sự kiện change
-                // Để tránh việc nó tự động load lại giá gốc, làm mất giá bạn đã sửa tay (nếu có)
-                $productSelect.val(currentCode).trigger('change.select2');
-            }
-
-            // Check trạng thái SĐT cũ
-            var currentPhone = $('#txtPhone').val();
-            if (currentPhone) {
-                $('#phoneStatus').html('<span class="text-success small fw-bold"><i class="bi bi-check-circle"></i> Thông tin hiện tại</span>');
-            }
-
-
-            // --- 3. XỬ LÝ SỰ KIỆN KHI NGƯỜI DÙNG CHỌN SẢN PHẨM KHÁC ---
+            // Khi chọn sản phẩm
             $productSelect.on('select2:select', function (e) {
                 var data = e.params.data;
                 var selectedSku = data.id;
 
-                // TRƯỜNG HỢP A: NHẬP MÃ MỚI TOANH
                 if (data.newOption) {
+                    // Sản phẩm mới
                     $('#txtCode').val(selectedSku.toUpperCase());
                     $('#txtName').val('').attr('placeholder', 'Nhập tên sản phẩm mới...').focus();
-                    $('#txtSellPrice').val('0');
-                    $('#txtImportPrice').val('0');
+                    $('#txtSellPrice').val(0);
+                    $('#txtImportPrice').val(0);
                     $('select[name="Order.Category"]').val('').trigger('change');
-                }
-                // TRƯỜNG HỢP B: CHỌN SẢN PHẨM CÓ SẴN (Gọi Ajax)
-                else {
-                    $('#txtName').attr('placeholder', 'Đang tải thông tin...');
-
+                } else {
+                    // Sản phẩm cũ -> Gọi Ajax
+                    $('#txtName').attr('placeholder', 'Đang tải...');
                     $.ajax({
-                        url: '?handler=ProductInfo', // Gọi Ajax
+                        url: '?handler=ProductInfo',
                         type: "GET",
                         data: { sku: selectedSku },
                         success: function (response) {
                             if (response.success) {
-                                // Ghi đè thông tin mới vào form
                                 $('#txtCode').val(selectedSku);
                                 $('#txtName').val(response.name);
                                 $('#txtSellPrice').val(response.sellPrice);
-                                $('#txtImportPrice').val(response.importPrice);
+                                $('#txtImportPrice').val(response.importPrice || 0);
                                 $('select[name="Order.Category"]').val(response.category).trigger('change');
                                 $('input[name="Order.Quantity"]').select();
+                                if (response.source) {
+                                    $('#ddlSource').val(response.source).trigger('change');
+                                }
+                                if (response.warehouse) {
+                                    $('#ddlWarehouse').val(response.warehouse).trigger('change');
+                                }
                             }
                         }
                     });
                 }
             });
 
-            // Xử lý khi xóa chọn (nút X)
-            $productSelect.on('select2:clear', function (e) {
-                $('#txtCode').val('');
-                $('#txtName').val('');
-                $('#txtSellPrice').val('');
+            // Khi xóa chọn sản phẩm
+            $productSelect.on('select2:clear', function () {
+                $('#txtCode').val(''); $('#txtName').val(''); $('#txtSellPrice').val('0');
             });
 
 
-            // --- 4. CHECK SĐT ---
-            $('#txtPhone').on('blur', function() {
-                var phone = $(this).val();
-                // Chỉ check nếu khác SĐT ban đầu (tránh spam server)
-                if (phone && phone.length > 8 && phone !== currentPhone) {
-                    $('#phoneStatus').html('<div class="spinner-border spinner-border-sm text-primary"></div> Checking...');
-                    $.ajax({
-                        url: '?handler=CheckPhone',
-                        type: "GET",
-                        data: { phone: phone },
-                        success: function (response) {
-                            if (response.found) {
-                                $('#txtCustName').val(response.name);
-                                $('#txtAddress').val(response.address);
-                                $('#phoneStatus').html('<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Khách hàng cũ (Đã đồng bộ)</span>');
-                            } else {
-                                $('#phoneStatus').html('<span class="text-primary fw-bold"><i class="bi bi-person-plus"></i> Khách hàng mới</span>');
-                            }
-                        }
-                    });
+            // ===============================================
+            // B. CẤU HÌNH TÌM KIẾM KHÁCH HÀNG (NÂNG CẤP)
+            // ===============================================
+            var $custSelect = $('.select2-customer').select2({
+                theme: 'bootstrap-5',
+                placeholder: "Gõ Tên hoặc SĐT để tìm/thêm mới...",
+                allowClear: true,
+                tags: true, // <--- CHO PHÉP NHẬP MỚI
+                createTag: function (params) {
+                    var term = $.trim(params.term);
+                    if (term === '') return null;
+
+                    // Kiểm tra xem người dùng đang nhập SỐ hay CHỮ
+                    var isPhone = /^[0-9+]+$/.test(term);
+                    var label = isPhone ? " (SĐT Mới)" : " (Tên Khách Mới)";
+
+                    return {
+                        id: term,
+                        text: term + label,
+                        newOption: true,
+                        isPhone: isPhone // Đánh dấu để tý xử lý
+                    };
                 }
             });
+
+            // XỬ LÝ KHI CHỌN KHÁCH HÀNG
+            $custSelect.on('select2:select', function (e) {
+                var data = e.params.data;
+                var $option = $(data.element); // Element <option> thật (nếu là khách cũ)
+
+                if (data.newOption) {
+                    // --- TRƯỜNG HỢP 1: KHÁCH MỚI (NHẬP TAY) ---
+                    var term = data.id;
+
+                    if (data.isPhone) {
+                        // Nếu nhập SỐ: Điền vào ô SĐT, xóa ô Tên để nhập
+                        $('#txtPhone').val(term);
+                        $('#txtCustName').val('').attr('placeholder', 'Nhập tên khách...').focus();
+                    } else {
+                        // Nếu nhập CHỮ: Điền vào ô Tên, xóa ô SĐT để nhập
+                        $('#txtCustName').val(term);
+                        $('#txtPhone').val('').attr('placeholder', 'Nhập số điện thoại...').focus();
+                    }
+                    // Xóa địa chỉ cũ
+                    $('#txtAddress').val('');
+                }
+                else {
+                    // --- TRƯỜNG HỢP 2: KHÁCH CŨ (CÓ TRONG LIST) ---
+                    var phone = data.id;
+                    var name = $option.data('name');
+                    var address = $option.data('address');
+
+                    $('#txtPhone').val(phone);
+                    $('#txtCustName').val(name);
+                    $('#txtAddress').val(address);
+
+                    // Focus sang ô Sản phẩm để nhập liệu tiếp cho nhanh
+                    $productSelect.select2('open');
+                }
+            });
+
+            // Khi xóa chọn khách
+            $custSelect.on('select2:clear', function () {
+                $('#txtPhone').val('');
+                $('#txtCustName').val('');
+                $('#txtAddress').val('');
+            });
+
+
+            // ===============================================
+            // C. LOGIC ĐỒNG BỘ KHI LOAD TRANG (CHO TRANG EDIT)
+            // ===============================================
+
+            // 1. Đồng bộ Sản phẩm cũ
+            var currentCode = $('#txtCode').val();
+            if (currentCode) {
+                    // Check xem mã này có trong list không, nếu không tạo option ảo
+                    if ($productSelect.find("option[value='" + currentCode + "']").length) {
+                        $productSelect.val(currentCode).trigger('change.select2');
+                    } else {
+                        var productName = $('#txtName').val();
+                        var newOption = new Option(productName + " (" + currentCode + ")", currentCode, true, true);
+                        $productSelect.append(newOption).trigger('change');
+                    }
+            }
+
+            // 2. Đồng bộ Khách hàng cũ
+            var currentPhone = $('#txtPhone').val();
+            if (currentPhone) {
+                // Nếu SĐT có trong list -> Chọn nó
+                if ($custSelect.find("option[value='" + currentPhone + "']").length) {
+                    $custSelect.val(currentPhone).trigger('change.select2');
+                } else {
+                    // Nếu chưa có (Khách vãng lai/mới), tạo option ảo để hiển thị
+                    var currentName = $('#txtCustName').val();
+                    var newOption = new Option(currentName + " - " + currentPhone, currentPhone, true, true);
+                    $custSelect.append(newOption).trigger('change');
+                }
+            }
         });
 
-        // --- 5. CÁC HÀM MODAL (Giữ nguyên) ---
+        // --- D. CÁC HÀM MODAL (Giữ nguyên) ---
         function openModal(type, title) {
             $('#lblAttrType').text(title);
-            $('#hdnAttrType').val(type);
-            $('#txtAttrValue').val('');
-            myModal.show();
-            setTimeout(() => $('#txtAttrValue').focus(), 500);
+            $('#hdnAttrType').val(type); $('#txtAttrValue').val('');
+            myModal.show(); setTimeout(() => $('#txtAttrValue').focus(), 500);
         }
 
         function saveAttribute() {
             var type = $('#hdnAttrType').val();
             var value = $('#txtAttrValue').val();
-
-            if(!value) { alert("Vui lòng nhập tên!"); $('#txtAttrValue').focus(); return; }
-
+            if(!value) { alert("Nhập tên!"); return; }
             var token = $('input[name="__RequestVerificationToken"]').val();
 
             $.ajax({
-                type: "POST",
-                url: "?handler=AddAttribute",
+                type: "POST", url: "?handler=AddAttribute",
                 data: { type: type, value: value },
                 headers: { "RequestVerificationToken": token },
-                success: function (response) {
-                    if (response.success) {
-                        var newOption = new Option(value, value, true, true);
-                        var targetSelect = '#ddl' + type;
-                        $(targetSelect).append(newOption).trigger('change');
+                success: function (res) {
+                    if (res.success) {
+                        $('#ddl' + type).append(new Option(value, value, true, true)).trigger('change');
                         myModal.hide();
-                    } else {
-                        alert("Lỗi: " + (response.message || "Không thể lưu"));
-                    }
+                    } else alert("Lỗi: " + (response.message || "Không thể lưu"));
                 }
             });
         }

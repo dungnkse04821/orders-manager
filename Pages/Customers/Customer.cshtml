@@ -36,8 +36,8 @@
             <tr>
                 <th>Họ và tên</th>
                 <th>Số điện thoại</th>
-                <th>Email</th>
                 <th>Địa chỉ</th>
+                <th>Reference</th>
                 <th>Ghi chú</th>
                 <th class="text-center" style="width: 150px;">Thao tác</th>
             </tr>
@@ -65,15 +65,18 @@
                                 </a>
                             }
                         </td>
+                        <td>@item.Address</td>
                         <td>
-                            @if (!string.IsNullOrEmpty(item.Email))
+                            @if (!string.IsNullOrEmpty(item.Reference))
                             {
-                                <a href="tel:@item.Email" class="text-decoration-none text-dark">
-                                    <i class="bi bi-envelope-heart"></i> @item.Email
+                                <a href="@item.Reference"
+                                   class="text-decoration-none text-dark"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
+                                    <i class="bi bi-link-45deg"></i> @item.Reference
                                 </a>
                             }
                         </td>
-                        <td>@item.Address</td>
                         <td class="text-muted small">@item.Note</td>
                         <td class="text-center">
                             <div class="btn-group" role="group">

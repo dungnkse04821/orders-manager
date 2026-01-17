@@ -322,7 +322,7 @@ namespace OrdersManager
                         Id = row.Count > 0 ? row[0].ToString() : "",
                         FullName = row.Count > 1 ? row[1].ToString() : "",
                         PhoneNumber = row.Count > 2 ? row[2].ToString() : "",
-                        Email = row.Count > 3 ? row[3].ToString() : "",
+                        Reference = row.Count > 3 ? row[3].ToString() : "",
                         Address = row.Count > 4 ? row[4].ToString() : "",
                         Note = row.Count > 5 ? row[5].ToString() : ""
                     });
@@ -342,9 +342,9 @@ namespace OrdersManager
                                 customer.Id,
                                 customer.FullName,
                                 phoneNumber,
-                                customer.Email,
+                                customer.Reference?? String.Empty,
                                 customer.Address,
-                                customer.Note
+                                customer.Note?? String.Empty
                             };
             valueRange.Values = new List<IList<object>> { objectList };
 
@@ -367,9 +367,9 @@ namespace OrdersManager
                                 customer.Id, // Giữ nguyên ID
                                 customer.FullName,
                                 phoneNumber,
-                                customer.Email,
+                                customer.Reference?? String.Empty,
                                 customer.Address,
-                                customer.Note
+                                customer.Note?? String.Empty
                             };
             valueRange.Values = new List<IList<object>> { objectList };
 

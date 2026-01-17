@@ -21,7 +21,7 @@ namespace OrdersManager.Pages.Orders
         public List<string> Warehouses { get; set; }
         public List<string> Categories { get; set; }
         public List<Product> ProductList { get; set; }
-
+        public List<Customer> CustomerList { get; set; }
         public void OnGet()
         {
             // Khởi tạo giá trị mặc định
@@ -113,7 +113,9 @@ namespace OrdersManager.Pages.Orders
                     name = product.Name,
                     category = product.Category,
                     sellPrice = product.SellingPrice,
-                    importPrice = product.ImportPrice
+                    importPrice = product.ImportPrice,
+                    source = product.Source,
+                    warehouse = product.Warehouse
                 });
             }
             return new JsonResult(new { success = false });
@@ -160,6 +162,7 @@ namespace OrdersManager.Pages.Orders
             Warehouses = _service.GetConfigData("Config_Kho");
             Categories = _service.GetConfigData("Config_LoaiHang");
             ProductList = _service.GetProducts();
+            CustomerList = _service.GetCustomers();
         }
 
     }

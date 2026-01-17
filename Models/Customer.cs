@@ -12,8 +12,8 @@ namespace OrdersManager.Models
         [DisplayName("Số điện thoại")]
         public string PhoneNumber { get; set; }
 
-        [DisplayName("Email")]
-        public string? Email { get; set; }
+        [DisplayName("Reference")]
+        public string? Reference { get; set; }
 
         [DisplayName("Địa chỉ")]
         public string Address { get; set; }

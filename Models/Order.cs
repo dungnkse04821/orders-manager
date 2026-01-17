@@ -34,11 +34,11 @@ namespace OrdersManager.Models
 
         // Cột H: Màu sắc
         [DisplayName("Màu sắc")]
-        public string Color { get; set; }
+        public string? Color { get; set; }
 
         // Cột I: Size
         [DisplayName("Size")]
-        public string Size { get; set; }
+        public string? Size { get; set; }
 
         // Cột J: Giá bán 
         [DisplayName("Giá bán")]
