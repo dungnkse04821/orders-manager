@@ -25,6 +25,10 @@ namespace OrdersManager.Pages.Orders
             Order = _service.GetAll().FirstOrDefault(o => o.Id == id);
 
             if (Order == null) return RedirectToPage("./Index");
+            Order.SellingPrice = Order.SellingPrice / 1000;
+            Order.ImportPrice = Order.ImportPrice / 1000;
+            Order.Deposit = Order.Deposit / 1000;
+            Order.Discount = Order.Discount / 1000;
 
             LoadDropdowns();
             return Page();
@@ -80,8 +84,8 @@ namespace OrdersManager.Pages.Orders
                         Sku = sku,
                         Name = Order.ProductName,
                         Category = Order.Category ?? "Khác",
-                        SellingPrice = Order.SellingPrice,
-                        ImportPrice = Order.ImportPrice,
+                        SellingPrice = Order.SellingPrice * 1000,
+                        ImportPrice = Order.ImportPrice * 1000,
                         Source = Order.Source,
                         Warehouse = Order.Warehouse
                     };
@@ -116,8 +120,8 @@ namespace OrdersManager.Pages.Orders
                     success = true,
                     name = product.Name,
                     category = product.Category,
-                    sellPrice = product.SellingPrice,
-                    importPrice = product.ImportPrice,
+                    sellPrice = product.SellingPrice / 1000,
+                    importPrice = product.ImportPrice / 1000,
                     source = product.Source,
                     warehouse = product.Warehouse
                 });

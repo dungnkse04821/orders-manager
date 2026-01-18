@@ -21,7 +21,8 @@ namespace OrdersManager.Pages.Products
 
             Product = _service.GetProducts().FirstOrDefault(p => p.Sku == sku);
             if (Product == null) return RedirectToPage("./Index");
-
+            Product.ImportPrice /= 1000;
+            Product.SellingPrice /= 1000;
             Categories = _service.GetConfigData("Config_LoaiHang");
             Sources = _service.GetConfigData("Config_NguonHang");
             Warehouses = _service.GetConfigData("Config_Kho");
@@ -31,7 +32,8 @@ namespace OrdersManager.Pages.Products
         public IActionResult OnPost()
         {
             if (!ModelState.IsValid) return Page();
-
+            Product.SellingPrice *= 1000;
+            Product.ImportPrice *= 1000;
             _service.UpdateProduct(Product);
             return RedirectToPage("./Index");
         }

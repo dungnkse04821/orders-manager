@@ -35,7 +35,8 @@ namespace OrdersManager.Pages.Products
                 Categories = _service.GetConfigData("Config_LoaiHang");
                 return Page();
             }
-
+            Product.SellingPrice *= 1000;
+            Product.ImportPrice *= 1000;
             _service.AddProduct(Product);
             return RedirectToPage("./Index");
         }
