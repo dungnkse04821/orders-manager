@@ -95,6 +95,8 @@ namespace OrdersManager.Pages.Orders
 
             // Sinh ID và lưu
             Order.Id = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+            Order.SellingPrice = Order.SellingPrice * 1000;
+            Order.ImportPrice = Order.ImportPrice * 1000;
             Order.Discount = Order.Discount * 1000;
             Order.Deposit = Order.Deposit * 1000;
             _service.Add(Order);

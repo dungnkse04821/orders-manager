@@ -215,7 +215,7 @@
             </div>
             <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="btn btn-success fw-bold" onclick="return confirm('Xác nhận đã nhận tiền và cập nhật trạng thái?')">
+                <button type="button" class="btn btn-success fw-bold" onclick="submitQrPayment()">
                     <i class="bi bi-check2-circle"></i> Đã nhận tiền & Cập nhật
                 </button>
             </div>
@@ -371,6 +371,46 @@
 
             // Hiện Modal
             new bootstrap.Modal(document.getElementById('qrModal')).show();
+        }
+
+        function submitQrPayment() {
+            // 1. Lấy danh sách các checkbox đang chọn
+            var selectedBoxes = $('.item-check:checked');
+
+            if (selectedBoxes.length === 0) {
+                alert("Chưa chọn đơn hàng nào!");
+                return;
+            }
+
+            // 2. Duyệt qua từng dòng để điền tiền
+            selectedBoxes.each(function() {
+                var $checkbox = $(this);
+                var row = $checkbox.closest('tr');
+
+                // Lấy số tiền còn thiếu từ data-money
+                var moneyToPay = parseFloat($checkbox.data('money')) || 0;
+
+                // Tìm ô input "Thực thu" (nằm trong cột có class .col-delivery)
+                // Và điền số tiền vào đó
+                var $inputPaid = row.find('.col-delivery input');
+
+                // Chỉ điền nếu số tiền > 0
+                if(moneyToPay > 0) {
+                    $inputPaid.val(moneyToPay);
+                }
+
+                // Đảm bảo ô input này không bị disabled (để submit được giá trị về server)
+                $inputPaid.prop('disabled', false);
+            });
+
+            // 3. Đảm bảo dropdown hành động đang chọn đúng là "Đã giao"
+            // (Để backend biết là cần update tiền)
+            $('#ddlTargetStatus').val('Đã giao');
+
+            // 4. Submit Form chính
+            if(confirm('Hệ thống sẽ cập nhật trạng thái "Đã giao" và ghi nhận thanh toán cho các đơn đã chọn.\nBạn chắc chắn chứ?')) {
+                $('#mainForm').submit();
+            }
         }
     </script>
 }

@@ -90,7 +90,7 @@ namespace OrdersManager.Pages.Orders
                 TotalAmount = o.TotalAmount, 
                 Deposit = o.Deposit,
                 ImportPrice = o.ImportPrice > 0 ? o.ImportPrice : 0,
-                PaidAmount = o.TotalAmount - o.Deposit,
+                PaidAmount = 0,
                 IsSelected = false
             }).ToList();
         }
