@@ -94,6 +94,9 @@
                                        style="cursor:pointer"
                                        data-code="@item.Code"
                                        data-product="@item.ProductName"
+                                       data-quantity="@item.Quantity"
+                                       data-price="@item.SellingPrice"
+                                       data-customer="@item.CustomerName"
                                        data-money="@item.RemainingAmount" />
                             </td>
                             <td class="small text-muted">@(item.OrderDate?.ToString("dd/MM/yyyy"))</td>
@@ -176,8 +179,9 @@
                             <table class="table table-sm table-borderless">
                                 <thead class="border-bottom text-muted small">
                                     <tr>
-                                        <th>Mã đơn</th>
-                                        <th>Sản phẩm</th>
+                                        <th>Mã đơn/SP</th>
+                                        <th>Đ.Giá</th>
+                                        <th>SL</th>
                                         <th class="text-end">Thành tiền</th>
                                     </tr>
                                 </thead>
@@ -185,7 +189,7 @@
                                 </tbody>
                                 <tfoot class="border-top fw-bold">
                                     <tr>
-                                        <td colspan="2" class="pt-3">TỔNG CỘNG</td>
+                                        <td colspan="3" class="pt-3">TỔNG CỘNG</td>
                                         <td class="text-end pt-3 text-danger fs-5" id="billTotalDisplay">0</td>
                                     </tr>
                                 </tfoot>
@@ -221,15 +225,14 @@
 
 @section Scripts {
     <script>
-        // CẤU HÌNH NGÂN HÀNG (Thay thông tin của bạn vào đây)
-        const BANK_ID = "@Model.BankId";       // Ví dụ: MB, VCB, TECHCOMBANK
-        const ACCOUNT_NO = "@Model.AccountNo"; // Số tài khoản
-        const ACCOUNT_NAME = "@Model.AccountName"; // Tên chủ tài khoản
+        const BANK_ID = "@Model.BankId";
+        const ACCOUNT_NO = "@Model.AccountNo";
+        const ACCOUNT_NAME = "@Model.AccountName";
         const TEMPLATE = "print";
 
         $(document).ready(function() {
 
-            // --- A. TÍNH TOÁN TỔNG TIỀN ---
+            // --- A. TÍNH TOÁN TỔNG TIỀN (Giữ nguyên) ---
             function updateTotals() {
                 var count = 0;
                 var total = 0;
@@ -260,13 +263,13 @@
                 updateTotals();
             });
 
-            // --- B. ẨN HIỆN CỘT THEO TRẠNG THÁI ---
+            // --- B. ẨN HIỆN CỘT THEO TRẠNG THÁI (Giữ nguyên) ---
             function toggleColumns() {
                 var target = $('#ddlTargetStatus').val();
 
                 // 1. Ẩn hết trước
                 $('.col-arrival, .col-delivery').hide();
-                $('.col-arrival input, .col-delivery input').prop('disabled', true); // Disabled để ko gửi data rác về server
+                $('.col-arrival input, .col-delivery input').prop('disabled', true);
 
                 // 2. Hiện theo logic
                 if (target === "Đã về") {
@@ -279,13 +282,11 @@
                 }
             }
 
-            // Chạy khi đổi dropdown và khi mới vào trang
             $('#ddlTargetStatus').change(toggleColumns);
             toggleColumns();
         });
 
-        // --- C. HÀM TẠO QR CODE (Gọi từ nút bấm) ---
-                // --- C. HÀM TẠO QR CODE & HÓA ĐƠN ---
+        // --- C. HÀM TẠO QR CODE & HÓA ĐƠN (NÂNG CẤP) ---
         function openQrModal() {
             var selectedBoxes = $('.item-check:checked');
             if (selectedBoxes.length === 0) {
@@ -295,26 +296,53 @@
 
             var totalAmount = 0;
             var codes = [];
-            var billHtml = ""; // Biến chứa HTML của bảng hóa đơn
+            var billHtml = "";
+
+            // --- BIẾN KIỂM TRA KHÁCH HÀNG ---
+            var firstCustomer = null;
+            var isSameCustomer = true;
 
             // Duyệt qua từng dòng đã chọn
             selectedBoxes.each(function() {
-                var money = parseFloat($(this).data('money')) || 0;
-                var code = $(this).data('code');
-                var product = $(this).data('product'); // Lấy tên sản phẩm
+                var $el = $(this);
+
+                var money = parseFloat($el.data('money')) || 0;
+                var price = parseFloat($el.data('price')) || 0;
+                var quantity = parseInt($el.data('quantity')) || 0;
+                var code = $el.data('code');
+                var product = $el.data('product');
+                var customer = $el.data('customer');
+
+                // 2. CHECK TRÙNG KHÁCH HÀNG
+                if (firstCustomer === null) {
+                    firstCustomer = customer; // Gán người đầu tiên làm chuẩn
+                } else if (firstCustomer !== customer) {
+                    isSameCustomer = false; // Phát hiện khác khách hàng
+                    return false; // Break vòng lặp
+                }
 
                 totalAmount += money;
                 codes.push(code);
 
-                // Tạo dòng cho bảng hóa đơn
+                // 3. TẠO HTML (Thêm cột Đơn giá và Số lượng)
                 billHtml += `
                     <tr>
-                        <td class="fw-bold text-primary small">${code}</td>
-                        <td class="small text-truncate" style="max-width: 150px;" title="${product}">${product}</td>
+                        <td>
+                            <div class="fw-bold text-primary small">${code}</div>
+                            <div class="small text-truncate text-muted" style="max-width: 150px;" title="${product}">${product}</div>
+                        </td>
+                        <td class="text-center small">${price.toLocaleString('vi-VN')}</td>
+                        <td class="text-center fw-bold small">${quantity}</td>
                         <td class="text-end fw-bold">${money.toLocaleString('vi-VN')}</td>
                     </tr>
                 `;
             });
+
+            // --- XỬ LÝ LỖI ---
+            if (!isSameCustomer) {
+                alert("LỖI: Bạn đang chọn đơn hàng của NHIỀU KHÁCH KHÁC NHAU.\nVui lòng chỉ chọn đơn của cùng 1 khách để thanh toán.");
+                return;
+            }
 
             if (totalAmount <= 0) {
                 alert("Tổng tiền bằng 0đ. Không cần thanh toán.");
@@ -326,7 +354,10 @@
             $('#billTotalDisplay').text(totalAmount.toLocaleString('vi-VN') + " đ");
 
             // --- 2. TẠO MÃ QR ---
-            var contentRaw = "TT " + codes.join(" ");
+            // Nội dung: "[Tên Khách] TT [Mã Đơn...]"
+            var contentRaw = firstCustomer + " TT " + codes.join(" ");
+
+            // Cắt ngắn nếu quá dài (VietQR giới hạn ~50 ký tự)
             var content = contentRaw.length > 50 ? contentRaw.substring(0, 47) + "..." : contentRaw;
 
             var encodedContent = encodeURIComponent(content);
@@ -336,7 +367,7 @@
             var qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${TEMPLATE}.png?amount=${totalAmount}&addInfo=${encodedContent}&accountName=${encodedName}`;
 
             $('#qrContentDisplay').text(content);
-            $('#qrContainer').html(`<img src="${qrUrl}" class="img-fluid" style="max-height: 250px;" alt="QR Code" />`);
+            $('#qrContainer').html(`<img src="${qrUrl}" class="img-fluid border" style="max-height: 250px;" alt="QR Code" />`);
 
             // Hiện Modal
             new bootstrap.Modal(document.getElementById('qrModal')).show();

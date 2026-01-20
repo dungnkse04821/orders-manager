@@ -6,10 +6,11 @@ namespace OrdersManager.Pages.Orders
     public class IncomingModel : PageModel
     {
         private readonly GoogleSheetService _service;
-        public IncomingModel(GoogleSheetService service) { _service = service; }
-        public string BankId { get; set; } = "VPBank";
-        public string AccountNo { get; set; } = "137571668";
-        public string AccountName { get; set; } = "LE THUY DUNG";
+        private readonly IConfiguration _configuration;
+        public IncomingModel(GoogleSheetService service, IConfiguration configuration) { _service = service; _configuration = configuration; }
+        public string BankId { get; set; }
+        public string AccountNo { get; set; }
+        public string AccountName { get; set; }
         public class OrderItem
         {
             public string Id { get; set; }
@@ -17,6 +18,7 @@ namespace OrdersManager.Pages.Orders
             public string Code { get; set; }
             public string Status { get; set; }
             public string ProductName { get; set; }
+            public decimal SellingPrice { get; set; }
             public string CustomerName { get; set; }
             public string PhoneNumber { get; set; }
             public int Quantity { get; set; }
@@ -49,6 +51,10 @@ namespace OrdersManager.Pages.Orders
 
         public void OnGet()
         {
+            BankId = _configuration["BankConfig:BankId"];
+            AccountNo = _configuration["BankConfig:AccountNo"];
+            AccountName = _configuration["BankConfig:AccountName"];
+
             if (string.IsNullOrEmpty(StatusFilter)) StatusFilter = "ALL";
 
             var query = _service.GetAll().AsQueryable();
@@ -77,6 +83,7 @@ namespace OrdersManager.Pages.Orders
                 ProductName = $"{o.ProductName}",
                 CustomerName = o.CustomerName,
                 PhoneNumber = o.PhoneNumber,
+                SellingPrice = o.SellingPrice,
                 Quantity = o.Quantity,
                 OrderDate = o.OrderDate,
                 Status = o.Status,
