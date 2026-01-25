@@ -101,9 +101,11 @@ namespace OrdersManager.Models
         [DisplayName("Trạng thái")]
         public string Status { get; set; } = "Chờ đặt";
 
+        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại")]
         [DisplayName("Số điện thoại")]
         public string PhoneNumber { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập Địa chỉ")]
         [DisplayName("Địa chỉ giao hàng")]
         public string ShippingAddress { get; set; }
     }

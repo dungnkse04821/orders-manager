@@ -14,8 +14,9 @@
         </div>
 
         <div class="mb-3">
-            <label asp-for="Product.Name" class="form-label">Tên sản phẩm</label>
+            <label asp-for="Product.Name" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
             <input asp-for="Product.Name" class="form-control" required />
+            <span asp-validation-for="Product.Name" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
@@ -74,3 +75,8 @@
         <a asp-page="./Index" class="btn btn-link w-100 text-center text-decoration-none mt-2">Quay lại</a>
     </form>
 </div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

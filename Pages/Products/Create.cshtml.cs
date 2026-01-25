@@ -33,6 +33,8 @@ namespace OrdersManager.Pages.Products
             {
                 ModelState.AddModelError("Product.Sku", "Mã SKU này đã tồn tại!");
                 Categories = _service.GetConfigData("Config_LoaiHang");
+                Sources = _service.GetConfigData("Config_NguonHang");
+                Warehouses = _service.GetConfigData("Config_Kho");
                 return Page();
             }
             Product.SellingPrice *= 1000;

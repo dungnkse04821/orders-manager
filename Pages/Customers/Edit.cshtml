@@ -13,16 +13,19 @@
                 <input type="hidden" asp-for="Customer.Id" />
 
                 <div class="mb-3">
-                    <label asp-for="Customer.FullName" class="form-label"></label>
+                    <label asp-for="Customer.FullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                     <input asp-for="Customer.FullName" class="form-control" required />
+                    <span asp-validation-for="Customer.FullName" class="text-danger small"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Customer.PhoneNumber" class="form-label"></label>
+                    <label asp-for="Customer.PhoneNumber" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                     <input asp-for="Customer.PhoneNumber" class="form-control" />
+                    <span asp-validation-for="Customer.PhoneNumber" class="text-danger small"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Customer.Address" class="form-label"></label>
+                    <label asp-for="Customer.Address" class="form-label">Địa chỉ <span class="text-danger">*</span></label>
                     <input asp-for="Customer.Address" class="form-control" />
+                    <span asp-validation-for="Customer.Address" class="text-danger small"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Customer.Reference" class="form-label"></label>
@@ -39,3 +42,8 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

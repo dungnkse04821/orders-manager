@@ -9,14 +9,15 @@
     <hr />
     <form method="post">
         <div class="mb-3">
-            <label asp-for="Product.Sku" class="form-label fw-bold">Mã SKU (*)</label>
-            <input asp-for="Product.Sku" class="form-control text-uppercase" placeholder="VD: AO-THUN-01" required />
+            <label asp-for="Product.Sku" class="form-label fw-bold">Mã SKU <span class="text-danger">*</span></label>
+            <input asp-for="Product.Sku" class="form-control text-uppercase" placeholder="VD: AO-THUN-01"/>
             <span asp-validation-for="Product.Sku" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="Product.Name" class="form-label">Tên sản phẩm</label>
-            <input asp-for="Product.Name" class="form-control" required />
+            <label asp-for="Product.Name" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+            <input asp-for="Product.Name" class="form-control"/>
+            <span asp-validation-for="Product.Name" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
@@ -54,14 +55,14 @@
             <div class="col-6 mb-3">
                 <label asp-for="Product.ImportPrice" class="form-label">Giá nhập</label>
                 <div class="input-group">
-                    <input asp-for="Product.ImportPrice" class="form-control" type="number" />
+                    <input asp-for="Product.ImportPrice" class="form-control" value="0" type="number" />
                     <span class="input-group-text">.000 đ</span>
                 </div>
             </div>
             <div class="col-6 mb-3">
                 <label asp-for="Product.SellingPrice" class="form-label">Giá bán</label>
                 <div class="input-group">
-                    <input asp-for="Product.SellingPrice" class="form-control" type="number" />
+                    <input asp-for="Product.SellingPrice" class="form-control" value="0" type="number" />
                     <span class="input-group-text">.000 đ</span>
                 </div>
             </div>
@@ -74,3 +75,8 @@
         <a asp-page="./Index" class="btn btn-link w-100 text-center text-decoration-none mt-2">Quay lại</a>
     </form>
 </div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
