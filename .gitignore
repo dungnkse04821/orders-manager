@@ -6,3 +6,8 @@ appsettings.Development.json
 **/wwwroot/lib/*
 wwwroot/lib/
 obj/Debug
+bin/
+obj/
+# Debug / Release
+Debug/
+Release/
