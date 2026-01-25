@@ -69,11 +69,48 @@
                         <td>
                             @if (!string.IsNullOrEmpty(item.Reference))
                             {
+                                var uri = new Uri(item.Reference);
+                                var host = uri.Host.ToLower();
+
+                                string label = "Link";
+                                string icon = "bi-link-45deg";
+
+                                if (host.Contains("facebook.com"))
+                                {
+                                    label = "Facebook";
+                                    icon = "bi-facebook";
+                                }
+                                else if (host.Contains("instagram.com"))
+                                {
+                                    label = "Instagram";
+                                    icon = "bi-instagram";
+                                }
+                                else if (host.Contains("t.me") || host.Contains("telegram.org"))
+                                {
+                                    label = "Telegram";
+                                    icon = "bi-telegram";
+                                }
+                                else if (host.Contains("zalo.me"))
+                                {
+                                    label = "Zalo";
+                                    icon = "bi-chat-dots"; // Zalo không có icon chính thức trong BI
+                                }
+                                else if (host.Contains("youtube.com") || host.Contains("youtu.be"))
+                                {
+                                    label = "YouTube";
+                                    icon = "bi-youtube";
+                                }
+                                else if (host.Contains("tiktok.com"))
+                                {
+                                    label = "TikTok";
+                                    icon = "bi-tiktok";
+                                }
+
                                 <a href="@item.Reference"
-                                   class="text-decoration-none text-dark"
+                                   class="text-decoration-none text-dark d-inline-flex align-items-center gap-1"
                                    target="_blank"
                                    rel="noopener noreferrer">
-                                    <i class="bi bi-link-45deg"></i> @item.Reference
+                                    <i class="bi @icon"></i> @label
                                 </a>
                             }
                         </td>

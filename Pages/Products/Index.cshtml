@@ -34,6 +34,7 @@
                 <th>Tên sản phẩm</th>
                 <th>Loại hàng</th>
                 <th>Thông tin kho</th>
+                <th>Reference (link post)</th>
                 <th class="text-end">Giá nhập</th>
                 <th class="text-end">Giá bán</th>
                 <th class="text-center">Thao tác</th>
@@ -49,6 +50,55 @@
                     <td>
                         <div class="small text-muted">Nguồn: @p.Source</div>
                         <div class="small text-muted">Kho: @p.Warehouse</div>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(p.Reference))
+                        {
+                            var uri = new Uri(p.Reference);
+                            var host = uri.Host.ToLower();
+
+                            string label = "Link";
+                            string icon = "bi-link-45deg";
+
+                            if (host.Contains("facebook.com"))
+                            {
+                                label = "Facebook";
+                                icon = "bi-facebook";
+                            }
+                            else if (host.Contains("instagram.com"))
+                            {
+                                label = "Instagram";
+                                icon = "bi-instagram";
+                            }
+                            else if (host.Contains("t.me") || host.Contains("telegram.org"))
+                            {
+                                label = "Telegram";
+                                icon = "bi-telegram";
+                            }
+                            else if (host.Contains("zalo.me"))
+                            {
+                                label = "Zalo";
+                                icon = "bi-chat-dots";
+                            }
+                            else if (host.Contains("youtube.com") || host.Contains("youtu.be"))
+                            {
+                                label = "YouTube";
+                                icon = "bi-youtube";
+                            }
+                            else if (host.Contains("tiktok.com"))
+                            {
+                                label = "TikTok";
+                                icon = "bi-tiktok";
+                            }
+
+                            <a href="@p.Reference"
+                               class="text-decoration-none text-dark d-inline-flex align-items-center gap-1"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="bi @icon"></i> @label
+                            </a>
+                        }
+
                     </td>
                     <td class="text-end text-muted">@p.ImportPrice.ToString("N0")</td>
                     <td class="text-end fw-bold text-success">@p.SellingPrice.ToString("N0")</td>
