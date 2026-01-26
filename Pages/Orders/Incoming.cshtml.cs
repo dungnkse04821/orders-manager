@@ -18,42 +18,52 @@ namespace OrdersManager.Pages.Orders
             public string Code { get; set; }
             public string Status { get; set; }
             public string ProductName { get; set; }
+            public string Source { get; set; }
+            public string Warehouse { get; set; }
             public decimal SellingPrice { get; set; }
             public string CustomerName { get; set; }
             public string PhoneNumber { get; set; }
             public int Quantity { get; set; }
-
-            // --- CÁC TRƯỜNG MỚI ---
             public DateTime? OrderDate { get; set; }
             public decimal TotalAmount { get; set; } // Tổng giá trị đơn
             public decimal Deposit { get; set; }     // Đã cọc
             public decimal RemainingAmount => TotalAmount - Deposit; // Số tiền cần thanh toán
-
-            // Input cho Hàng về
             public decimal ImportPrice { get; set; }
             public DateTime ArrivalDate { get; set; } = DateTime.Now;
-
-            // Input cho Đã giao
             public decimal PaidAmount { get; set; } // Số tiền thanh toán
         }
 
+        // --- DỮ LIỆU HIỂN THỊ ---
         [BindProperty]
         public List<OrderItem> Items { get; set; } = new List<OrderItem>();
 
-        [BindProperty(SupportsGet = true)]
-        public string StatusFilter { get; set; }
+        // List Dropdown cho bộ lọc
+        public List<string> Sources { get; set; }
+        public List<string> Warehouses { get; set; }
 
-        [BindProperty(SupportsGet = true)] // Cho phép nhận từ URL
-        public string SearchTerm { get; set; } // Biến tìm kiếm
+        // --- CÁC THAM SỐ BỘ LỌC (GET) ---
+        [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; }
+        [BindProperty(SupportsGet = true)] public string SearchTerm { get; set; }
+        [BindProperty(SupportsGet = true)] public string SourceFilter { get; set; }    // MỚI
+        [BindProperty(SupportsGet = true)] public string WarehouseFilter { get; set; } // MỚI
+        [BindProperty(SupportsGet = true)] public string FromDate { get; set; }        // MỚI
+        [BindProperty(SupportsGet = true)] public string ToDate { get; set; }          // MỚI
 
-        [BindProperty]
-        public string TargetStatus { get; set; }
+        // --- CÁC CHỈ SỐ TỔNG HỢP (DASHBOARD) ---
+        public int TotalCount { get; set; }
+        public decimal TotalImportCapital { get; set; } // Tổng vốn (Giá nhập)
+        public decimal TotalRevenue { get; set; }       // Tổng doanh thu (Giá bán)
+
+        // --- BIẾN FORM POST ---
+        [BindProperty] public string TargetStatus { get; set; }
 
         public void OnGet()
         {
             BankId = _configuration["BankConfig:BankId"];
             AccountNo = _configuration["BankConfig:AccountNo"];
             AccountName = _configuration["BankConfig:AccountName"];
+            Sources = _service.GetConfigData("Config_NguonHang");
+            Warehouses = _service.GetConfigData("Config_Kho");
 
             if (string.IsNullOrEmpty(StatusFilter)) StatusFilter = "ALL";
 
@@ -76,6 +86,18 @@ namespace OrdersManager.Pages.Orders
                 );
             }
 
+            // Filter Nâng cao (MỚI)
+            if (!string.IsNullOrEmpty(SourceFilter)) query = query.Where(o => o.Source == SourceFilter);
+            if (!string.IsNullOrEmpty(WarehouseFilter)) query = query.Where(o => o.Warehouse == WarehouseFilter);
+            if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out DateTime from)) query = query.Where(o => o.OrderDate >= from);
+            if (!string.IsNullOrEmpty(ToDate) && DateTime.TryParse(ToDate, out DateTime to)) query = query.Where(o => o.OrderDate <= to);
+
+            // 3. TÍNH TOÁN DASHBOARD
+            TotalCount = query.Count();
+            TotalRevenue = query.Where(x => x.Status != "Hủy").Sum(o => o.TotalAmount);
+            // Tổng vốn = Giá nhập * Số lượng (Nếu chưa nhập giá vốn thì tính là 0)
+            TotalImportCapital = query.Sum(o => (o.ImportPrice > 0 ? o.ImportPrice : 0) * o.Quantity);
+
             Items = query.Select(o => new OrderItem
             {
                 Id = o.Id,
@@ -83,6 +105,8 @@ namespace OrdersManager.Pages.Orders
                 ProductName = $"{o.ProductName}",
                 CustomerName = o.CustomerName,
                 PhoneNumber = o.PhoneNumber,
+                Source = o.Source,
+                Warehouse = o.Warehouse,
                 SellingPrice = o.SellingPrice,
                 Quantity = o.Quantity,
                 OrderDate = o.OrderDate,
@@ -92,7 +116,7 @@ namespace OrdersManager.Pages.Orders
                 ImportPrice = o.ImportPrice > 0 ? o.ImportPrice : 0,
                 PaidAmount = 0,
                 IsSelected = false
-            }).ToList();
+            }).OrderByDescending(o => o.OrderDate).ToList();
         }
 
         public IActionResult OnPost()

@@ -6,19 +6,96 @@
 }
 
 <style>
-    /* Chỉnh lại margin để bảng không bị thanh footer che mất dòng cuối */
     body {
         padding-bottom: 80px;
     }
 </style>
 
 <form method="post" id="mainForm">
-
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-white-50">Số lượng đơn</h6>
+                        <h3 class="fw-bold mb-0">@Model.TotalCount</h3>
+                    </div>
+                    <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-dark-50">Tổng vốn nhập (Ước tính)</h6>
+                        <h3 class="fw-bold mb-0">@Model.TotalImportCapital.ToString("N0") <small class="fs-6">đ</small></h3>
+                    </div>
+                    <i class="bi bi-cash-stack fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-white-50">Tổng doanh thu bán</h6>
+                        <h3 class="fw-bold mb-0">@Model.TotalRevenue.ToString("N0") <small class="fs-6">đ</small></h3>
+                    </div>
+                    <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="card mb-3 shadow-sm border-primary">
         <div class="card-body py-3">
+            <div class="row g-2 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Trạng thái</label>
+                    <select name="StatusFilter" class="form-select form-select-sm" onchange="this.form.method='get'; this.form.submit()">
+                        <option value="ALL">-- Tất cả --</option>
+                        @foreach (var s in statusList)
+                        {
+                            <!option value="@s" @(Model.StatusFilter == s ? "selected" : "")>@s</!option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Nguồn hàng</label>
+                    <select name="SourceFilter" class="form-select form-select-sm">
+                        <option value="">-- Tất cả --</option>
+                        @foreach (var s in Model.Sources)
+                        {
+                            <!option value="@s" @(Model.SourceFilter == s ? "selected" : "")>@s</!option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Kho hàng</label>
+                    <select name="WarehouseFilter" class="form-select form-select-sm">
+                        <option value="">-- Tất cả --</option>
+                        @foreach (var w in Model.Warehouses)
+                        {
+                            <!option value="@w" @(Model.WarehouseFilter == w ? "selected" : "")>@w</!option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Từ ngày</label>
+                    <input type="date" name="FromDate" value="@Model.FromDate" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted">Đến ngày</label>
+                    <input type="date" name="ToDate" value="@Model.ToDate" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" formmethod="get" class="btn btn-primary btn-sm w-100 fw-bold">
+                        <i class="bi bi-funnel"></i> Lọc
+                    </button>
+                </div>
+            </div>
             <div class="row g-2 align-items-end">
-
-                <div class="col-md-3">
+                @* <div class="col-md-3">
                     <label class="form-label fw-bold small">Trạng thái hiện tại:</label>
                     <select name="StatusFilter" class="form-select" onchange="this.form.method='get'; this.form.submit()">
                         <option value="ALL">-- Tất cả --</option>
@@ -27,20 +104,17 @@
                             <!option value="@s" @(Model.StatusFilter == s ? "selected" : "")>@s</!option>
                         }
                     </select>
-                </div>
-
-                <div class="col-md-4">
+                </div> *@
+                <div class="col-md-7">
                     <label class="form-label fw-bold small">Tìm Khách/SĐT/Code:</label>
                     <div class="input-group">
                         <input asp-for="SearchTerm" class="form-control" placeholder="Nhập tên, SĐT hoặc mã đơn..." />
                         <button type="submit" formmethod="get" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
-
                 <div class="col-md-1 text-center d-none d-md-block">
                     <i class="bi bi-arrow-right fs-3 text-muted"></i>
                 </div>
-
                 <div class="col-md-4">
                     <label class="form-label fw-bold small text-success">Chuyển sang trạng thái:</label>
                     <select asp-for="TargetStatus" class="form-select fw-bold border-success text-success" id="ddlTargetStatus">
@@ -64,6 +138,7 @@
                     </th>
                     <th>Ngày đặt</th>
                     <th>Mã Code</th>
+                    <th>Kho/Nguồn</th>
                     <th style="width: 100px;">Trạng thái</th>
                     <th>Khách hàng</th>
                     <th>Sản phẩm</th>
@@ -100,7 +175,11 @@
                                        data-money="@item.RemainingAmount" />
                             </td>
                             <td class="small text-muted">@(item.OrderDate?.ToString("dd/MM/yyyy"))</td>
-                            <td class="fw-bold text-primary small">@item.Code</td>
+                            <td class="fw-bold text-primary small">#@item.Code</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@item.Source</span>
+                                <span class="badge bg-light text-dark border">@item.Warehouse</span>
+                            </td>
                             <td>
                                 <span class="badge bg-secondary text-wrap" style="font-size: 0.7rem;">@item.Status</span>
                             </td>
