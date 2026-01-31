@@ -1,58 +1,131 @@
 ﻿@page
 @model OrdersManager.Pages.Customers.DetailsModel
 @{
-    ViewData["Title"] = "Lịch sử mua hàng";
+    ViewData["Title"] = "Lịch sử mua hàng - " + Model.CustomerName;
+    var statusList = OrdersManager.Models.OrderStatusList.All;
 }
 
-<div class="mb-3">
-    <a asp-page="./Index" class="btn btn-outline-secondary">&larr; Quay lại danh sách</a>
-</div>
-
-<div class="card mb-4 border-primary">
-    <div class="card-body bg-light">
-        <h3 class="card-title text-primary">Khách hàng: @Model.CustomerName</h3>
-        <p class="card-text fs-5">
-            Tổng chi tiêu: <span class="fw-bold text-success">@Model.TotalSpent.ToString("N0")</span>
-            <span class="mx-2">|</span>
-            Tổng số đơn: <strong>@Model.CustomerOrders.Count</strong>
-        </p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a asp-page="./Index" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> Danh sách</a>
+        <h3 class="text-primary fw-bold mb-0">@Model.CustomerName</h3>
     </div>
 </div>
 
-<h4>Lịch sử đơn hàng</h4>
-<div class="table-responsive">
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white shadow-sm h-100">
+            <div class="card-body">
+                <small class="text-white-50">Tổng giá trị đơn hàng</small>
+                <h3 class="fw-bold mb-0">@Model.TotalSpent.ToString("N0")</h3>
+                <small class="text-white-50">(@Model.CustomerOrders.Count đơn hàng)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white shadow-sm h-100">
+            <div class="card-body">
+                <small class="text-white-50">Đã thanh toán</small>
+                <h3 class="fw-bold mb-0">@Model.TotalPaid.ToString("N0")</h3>
+                <small class="text-white-50">Tiền mặt + Chuyển khoản</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card @(Model.TotalDebt > 0 ? "bg-danger" : "bg-secondary") text-white shadow-sm h-100">
+            <div class="card-body">
+                <small class="text-white-50">Còn nợ</small>
+                <h3 class="fw-bold mb-0">@Model.TotalDebt.ToString("N0")</h3>
+                <small class="text-white-50">Cần thu thêm</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3 bg-light border-0 shadow-sm">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <input type="hidden" name="name" value="@Model.CustomerName" /> <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-0">Trạng thái đơn</label>
+                <select name="StatusFilter" class="form-select form-select-sm">
+                    <option value="ALL">-- Tất cả --</option>
+                    @foreach (var s in statusList)
+                    {
+                        <!option value="@s" @(Model.StatusFilter == s ? "selected" : "")>@s</!option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted mb-0">Thanh toán</label>
+                <select name="PaymentFilter" class="form-select form-select-sm">
+                    <!option value="" @(string.IsNullOrEmpty(Model.PaymentFilter) ? "selected" : "")>-- Tất cả --</!option>
+                    <!option value="Unpaid" @(Model.PaymentFilter == "Unpaid" ? "selected" : "")>Chưa thanh toán xong (Nợ)</!option>
+                    <!option value="Paid" @(Model.PaymentFilter == "Paid" ? "selected" : "")>Đã thanh toán đủ</!option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold mt-4">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a asp-page="./Details" asp-route-name="@Model.CustomerName" class="btn btn-outline-secondary btn-sm w-100 mt-4">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive bg-white shadow-sm rounded">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
             <tr>
                 <th>Ngày đặt</th>
-                <th>Mã Code</th>
+                <th>Mã Đơn</th>
+                <th>Trạng thái</th>
                 <th>Sản phẩm</th>
-                <th>SL</th>
-                <th>Giá trị</th>
-                <th>Trạng thái thanh toán</th>
+                <th class="text-center">SL</th>
+                <th class="text-end">Tổng tiền</th>
+                <th class="text-end">Đã trả</th>
+                <th class="text-end">Còn nợ</th>
             </tr>
         </thead>
         <tbody>
+            @if (Model.CustomerOrders.Count == 0)
+            {
+                <tr><td colspan="8" class="text-center py-4 text-muted">Không có đơn hàng nào theo điều kiện lọc.</td></tr>
+            }
+
             @foreach (var order in Model.CustomerOrders)
             {
                 <tr>
-                    <td>@(order.OrderDate?.ToString("dd/MM/yyyy"))</td>
-                    <td>@order.Code</td>
+                    <td class="small text-muted">@(order.OrderDate?.ToString("dd/MM/yyyy"))</td>
+                    <td class="fw-bold text-primary">
+                        <a asp-page="/Orders/Edit" asp-route-id="@order.Id" class="text-decoration-none">@order.Code</a>
+                    </td>
                     <td>
-                        @order.ProductName
-                        <small class="text-muted">(@order.Color - @order.Size)</small>
+                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.7em">@order.Status</span>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">@order.ProductName</div>
+                        <div class="small text-muted">@order.Color / @order.Size</div>
                     </td>
                     <td class="text-center">@order.Quantity</td>
-                    <td class="text-end">@order.TotalAmount.ToString("N0")</td>
-                    <td>
-                        @if (order.PaymentDate.HasValue)
+                    <td class="text-end fw-bold">@order.TotalAmount.ToString("N0")</td>
+
+                    <td class="text-end text-success">
+                        @((Model.TotalSpent - Model.TotalDebt).ToString("N0"))
+                    </td>
+
+                    <td class="text-end">
+                        @if (order.RemainingAmount > 0)
                         {
-                            <span class="badge bg-success">Đã thanh toán</span>
+                            <span class="text-danger fw-bold">@order.RemainingAmount.ToString("N0")</span>
                         }
                         else
                         {
-                            <span class="badge bg-warning text-dark">Chưa thanh toán</span>
-                            <small class="d-block text-muted">Còn lại: @order.RemainingAmount.ToString("N0")</small>
+                            <span class="text-success small"><i class="bi bi-check-lg"></i> Xong</span>
                         }
                     </td>
                 </tr>
