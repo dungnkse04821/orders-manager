@@ -4,36 +4,74 @@
     ViewData["Title"] = "Thống kê khách hàng";
 }
 
-<h2 class="mb-4">Danh sách khách hàng (Từ đơn hàng)</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-primary fw-bold"><i class="bi bi-people-fill"></i> Danh sách khách hàng</h2>
+</div>
 
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-striped align-middle">
+<div class="card mb-3 bg-light border-0 shadow-sm">
+    <div class="card-body py-2">
+        <form method="get" class="row align-items-center">
+            <div class="col-auto fw-bold text-muted">Lọc theo:</div>
+            <div class="col-md-3">
+                <select asp-for="PaymentFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">-- Tất cả khách hàng --</option>
+                    <option value="Debt">Đang nợ tiền (Chưa thanh toán hết)</option>
+                    <option value="Paid">Đã thanh toán hết</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <a asp-page="./Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive shadow-sm rounded bg-white">
+    <table class="table table-hover align-middle mb-0">
         <thead class="bg-primary text-white">
             <tr>
                 <th>Tên Khách Hàng</th>
                 <th class="text-center">Số đơn</th>
-                <th class="text-end">Tổng tiền đã mua</th>
+                <th class="text-end">Tổng mua</th>
+                <th class="text-end">Còn nợ</th>
                 <th class="text-center">Mua gần nhất</th>
-                <th class="text-center">Chi tiết</th>
+                <th class="text-center">Thao tác</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.CustomerStats)
+            @if (Model.CustomerStatsView.Count == 0)
+            {
+                <tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy khách hàng nào.</td></tr>
+            }
+
+            @foreach (var item in Model.CustomerStatsView)
             {
                 <tr>
                     <td class="fw-bold text-primary">@item.CustomerName</td>
                     <td class="text-center">
-                        <span class="badge bg-secondary rounded-pill">@item.OrderCount</span>
+                        <span class="badge bg-light text-dark border">@item.OrderCount</span>
                     </td>
-                    <td class="text-end fw-bold text-success">
+                    <td class="text-end text-dark">
                         @item.TotalSpent.ToString("N0")
                     </td>
-                    <td class="text-center">
+
+                    <td class="text-end fw-bold">
+                        @if (item.TotalDebt > 0)
+                        {
+                            <span class="text-danger">@item.TotalDebt.ToString("N0")</span>
+                        }
+                        else
+                        {
+                            <span class="text-success small"><i class="bi bi-check-all"></i> Hết nợ</span>
+                        }
+                    </td>
+
+                    <td class="text-center text-muted small">
                         @(item.LastOrderDate?.ToString("dd/MM/yyyy"))
                     </td>
                     <td class="text-center">
-                        <a asp-page="./Details" asp-route-name="@item.CustomerName" class="btn btn-sm btn-info text-white">
-                            Xem lịch sử
+                        <a asp-page="./Details" asp-route-name="@item.CustomerName" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> Chi tiết
                         </a>
                     </td>
                 </tr>

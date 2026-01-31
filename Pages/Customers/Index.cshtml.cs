@@ -13,25 +13,45 @@ namespace OrdersManager.Pages.Customers
             _service = service;
         }
 
-        public List<CustomerSummary> CustomerStats { get; set; } = new List<CustomerSummary>();
+        public List<CustomerSummary> CustomerStatsView { get; set; } = new List<CustomerSummary>();
+
+        [BindProperty(SupportsGet = true)]
+        public string PaymentFilter { get; set; }
 
         public void OnGet()
         {
-            // 1. Lấy tất cả đơn hàng
             var allOrders = _service.GetAll();
 
-            // 2. Gom nhóm theo Tên khách hàng (LINQ)
-            CustomerStats = allOrders
-                .Where(o => !string.IsNullOrEmpty(o.CustomerName)) // Bỏ đơn không có tên khách
+            // 1. Gom nhóm và tính toán sơ bộ
+            var query = allOrders
+                .Where(o => !string.IsNullOrEmpty(o.CustomerName))
                 .GroupBy(o => o.CustomerName)
                 .Select(g => new CustomerSummary
                 {
                     CustomerName = g.Key,
                     OrderCount = g.Count(),
-                    TotalSpent = g.Sum(o => o.TotalAmount), // Cộng tổng cột TotalAmount
-                    LastOrderDate = g.Max(o => o.OrderDate) // Lấy ngày mua mới nhất
-                })
-                .OrderByDescending(x => x.TotalSpent) // Sắp xếp khách VIP (mua nhiều) lên đầu
+                    TotalSpent = g.Sum(o => o.TotalAmount),
+                    TotalDebt = g.Sum(o => o.RemainingAmount > 0 ? o.RemainingAmount : 0),
+                    LastOrderDate = g.Max(o => o.OrderDate)
+                });
+
+            // 2. Áp dụng bộ lọc Tình trạng thanh toán
+            if (!string.IsNullOrEmpty(PaymentFilter))
+            {
+                if (PaymentFilter == "Debt")
+                {
+                    query = query.Where(c => c.TotalDebt > 0);
+                }
+                else if (PaymentFilter == "Paid")
+                {
+                    query = query.Where(c => c.TotalDebt <= 0);
+                }
+            }
+
+            // 3. Sắp xếp: Ai nợ nhiều nhất lên đầu, sau đó đến ai mua nhiều nhất
+            CustomerStatsView = query
+                .OrderByDescending(x => x.TotalDebt)
+                .ThenByDescending(x => x.TotalSpent)
                 .ToList();
         }
     }

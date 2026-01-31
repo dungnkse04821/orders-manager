@@ -5,6 +5,7 @@
         public string CustomerName { get; set; }
         public int OrderCount { get; set; } // Số lượng đơn
         public decimal TotalSpent { get; set; } // Tổng tiền đã mua
+        public decimal TotalDebt { get; set; } // Tổng nợ
         public DateTime? LastOrderDate { get; set; } // Ngày mua gần nhất
     }
 }
