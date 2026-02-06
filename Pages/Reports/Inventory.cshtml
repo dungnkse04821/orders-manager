@@ -1,4 +1,125 @@
 ﻿@page
 @model OrdersManager.Pages.Reports.InventoryModel
 @{
+    ViewData["Title"] = "Báo cáo Nhập hàng & Công nợ";
 }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="text-primary fw-bold"><i class="bi bi-shop-window"></i> Tổng hợp Nhập hàng</h2>
+        <p class="text-muted mb-0">Theo dõi tổng vốn nhập và phân bổ hàng hóa theo Nguồn/Kho</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <small class="text-white-50">Tổng vốn nhập (Toàn bộ)</small>
+                <h3 class="fw-bold mb-0">
+                    @((Model.SourceStats.Sum(x => x.TotalImportValue)).ToString("N0")) <small class="fs-6">đ</small>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body">
+                <small class="text-white-50">Tổng số lượng hàng nhập</small>
+                <h3 class="fw-bold mb-0">
+                    @Model.SourceStats.Sum(x => x.ProductCount) <small class="fs-6">sp</small>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-bottom-0">
+        <ul class="nav nav-tabs card-header-tabs" id="inventoryTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="source-tab" data-bs-toggle="tab" data-bs-target="#source-pane" type="button" role="tab">
+                    <i class="bi bi-globe"></i> Theo Nguồn Hàng
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="warehouse-tab" data-bs-toggle="tab" data-bs-target="#warehouse-pane" type="button" role="tab">
+                    <i class="bi bi-box-seam"></i> Theo Kho Hàng
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-0">
+        <div class="tab-content">
+
+            <div class="tab-pane fade show active" id="source-pane" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Tên Nguồn</th>
+                                <th class="text-center">Số đơn</th>
+                                <th class="text-center">Số lượng SP</th>
+                                <th class="text-end">Tổng Vốn (Công nợ)</th>
+                                <th class="text-center pe-4">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.SourceStats)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-primary">@item.Name</td>
+                                    <td class="text-center">@item.OrderCount</td>
+                                    <td class="text-center">@item.ProductCount</td>
+                                    <td class="text-end fw-bold text-danger">
+                                        @item.TotalImportValue.ToString("N0")
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <a asp-page="/Orders/Incoming" asp-route-SourceFilter="@item.Name" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Xem đơn
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="warehouse-pane" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Tên Kho</th>
+                                <th class="text-center">Số đơn</th>
+                                <th class="text-center">Số lượng SP</th>
+                                <th class="text-end">Tổng Vốn (Công nợ)</th>
+                                <th class="text-center pe-4">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.WarehouseStats)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-success">@item.Name</td>
+                                    <td class="text-center">@item.OrderCount</td>
+                                    <td class="text-center">@item.ProductCount</td>
+                                    <td class="text-end fw-bold text-danger">
+                                        @item.TotalImportValue.ToString("N0")
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <a asp-page="/Orders/Incoming" asp-route-WarehouseFilter="@item.Name" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-eye"></i> Xem đơn
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
