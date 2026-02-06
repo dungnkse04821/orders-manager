@@ -55,7 +55,7 @@ namespace OrdersManager.Pages.Reports
                     Name = g.Key,
                     OrderCount = g.Count(),
                     ProductCount = g.Sum(o => o.Quantity),
-                    TotalImportValue = g.Sum(o => (o.ImportPrice ?? 0) * o.Quantity)
+                    TotalImportValue = g.Sum(o => (o.ImportPrice == 0 ? 0 : o.ImportPrice) * o.Quantity)
                 })
                 .OrderByDescending(x => x.TotalImportValue)
                 .ToList();
