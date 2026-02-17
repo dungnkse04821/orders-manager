@@ -27,12 +27,40 @@ namespace OrdersManager.Pages.Reports
         public List<SupplierStat> SourceStats { get; set; } = new List<SupplierStat>();
         public List<SupplierStat> WarehouseStats { get; set; } = new List<SupplierStat>();
 
+        [BindProperty(SupportsGet = true)] public string FromDate { get; set; }
+        [BindProperty(SupportsGet = true)] public string ToDate { get; set; }
+        [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; }
         public void OnGet()
         {
-            var orders = _service.GetAll();
 
-            // 1. THỐNG KÊ THEO NGUỒN HÀNG (SOURCE)
-            SourceStats = orders
+            // 1. Lấy tất cả dữ liệu
+            var query = _service.GetAll().AsQueryable();
+
+            if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out DateTime from))
+            {
+                query = query.Where(o => o.OrderDate >= from);
+            }
+            if (!string.IsNullOrEmpty(ToDate) && DateTime.TryParse(ToDate, out DateTime to))
+            {
+                query = query.Where(o => o.OrderDate <= to);
+            }
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(StatusFilter) && StatusFilter != "ALL")
+            {
+                query = query.Where(o => o.Status == StatusFilter);
+            }
+            else
+            {
+                // Mặc định: Nếu không chọn gì, nên ẩn đơn Hủy để số liệu chính xác
+                // (Hoặc tùy bạn muốn hiện cả Hủy thì bỏ dòng này đi)
+                query = query.Where(o => o.Status != "Hủy");
+            }
+
+            // 3. GOM NHÓM & TÍNH TOÁN (Sau khi đã lọc)
+
+            // Thống kê Nguồn hàng
+            SourceStats = query
                 .Where(o => !string.IsNullOrEmpty(o.Source))
                 .GroupBy(o => o.Source)
                 .Select(g => new SupplierStat
@@ -40,14 +68,13 @@ namespace OrdersManager.Pages.Reports
                     Name = g.Key,
                     OrderCount = g.Count(),
                     ProductCount = g.Sum(o => o.Quantity),
-                    // Tính tổng vốn: Giá nhập * Số lượng
                     TotalImportValue = g.Sum(o => (o.ImportPrice == 0 ? 0 : o.ImportPrice) * o.Quantity)
                 })
                 .OrderByDescending(x => x.TotalImportValue)
                 .ToList();
 
-            // 2. THỐNG KÊ THEO KHO HÀNG (WAREHOUSE)
-            WarehouseStats = orders
+            // Thống kê Kho hàng
+            WarehouseStats = query
                 .Where(o => !string.IsNullOrEmpty(o.Warehouse))
                 .GroupBy(o => o.Warehouse)
                 .Select(g => new SupplierStat
