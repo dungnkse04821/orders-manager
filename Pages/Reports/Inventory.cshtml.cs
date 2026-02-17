@@ -33,7 +33,6 @@ namespace OrdersManager.Pages.Reports
         public void OnGet()
         {
 
-            // 1. Lấy tất cả dữ liệu
             var query = _service.GetAll().AsQueryable();
 
             if (!string.IsNullOrEmpty(FromDate) && DateTime.TryParse(FromDate, out DateTime from))
@@ -52,12 +51,8 @@ namespace OrdersManager.Pages.Reports
             }
             else
             {
-                // Mặc định: Nếu không chọn gì, nên ẩn đơn Hủy để số liệu chính xác
-                // (Hoặc tùy bạn muốn hiện cả Hủy thì bỏ dòng này đi)
                 query = query.Where(o => o.Status != "Hủy");
             }
-
-            // 3. GOM NHÓM & TÍNH TOÁN (Sau khi đã lọc)
 
             // Thống kê Nguồn hàng
             SourceStats = query
