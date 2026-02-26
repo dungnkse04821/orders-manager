@@ -2,6 +2,7 @@
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
+using Microsoft.Extensions.Logging;
 using OrdersManager.Models;
 using System.Globalization;
 
@@ -15,19 +16,31 @@ namespace OrdersManager
         static readonly string SheetName = "Order";
         static SheetsService service;
 
-        public GoogleSheetService()
-        {
-            GoogleCredential credential;
-            using (var stream = new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
-            {
-                credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
-            }
+        private readonly ILogger<GoogleSheetService> _logger;
 
-            service = new SheetsService(new BaseClientService.Initializer()
+        public GoogleSheetService(ILogger<GoogleSheetService> logger)
+        {
+            _logger = logger;
+            try
             {
-                HttpClientInitializer = credential,
-                ApplicationName = ApplicationName,
-            });
+                GoogleCredential credential;
+                using (var stream = new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+                {
+                    credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
+                }
+
+                service = new SheetsService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = ApplicationName,
+                });
+
+                _logger.LogInformation("Khởi tạo kết nối Google Sheet API thành công.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "LỖI NGHIÊM TRỌNG: Không thể khởi tạo Google Sheet Service. Vui lòng kiểm tra file credentials.json");
+            }
         }
 
         private decimal ParseDecimal(object value)
@@ -104,18 +117,20 @@ namespace OrdersManager
 
         public void Add(Order order)
         {
-            var valueRange = new ValueRange();
+            try
+            {
+                var valueRange = new ValueRange();
 
-            // Xử lý ngày tháng về string
-            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            var phoneNumber = "'" + order.PhoneNumber;
-            // QUAN TRỌNG: Với các cột công thức, ta truyền null hoặc string rỗng để Google Sheet tự tính (nếu bạn set ArrayFormula trong sheet)
-            // Hoặc ta truyền chính xác công thức vào (ví dụ "=J2*K2"). 
-            // Ở đây tôi dùng cách set công thức R1C1 notation (tương đối) để đơn giản.
+                // Xử lý ngày tháng về string
+                string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                var phoneNumber = "'" + order.PhoneNumber;
+                // QUAN TRỌNG: Với các cột công thức, ta truyền null hoặc string rỗng để Google Sheet tự tính (nếu bạn set ArrayFormula trong sheet)
+                // Hoặc ta truyền chính xác công thức vào (ví dụ "=J2*K2"). 
+                // Ở đây tôi dùng cách set công thức R1C1 notation (tương đối) để đơn giản.
 
-            var objectList = new List<object>() {
+                var objectList = new List<object>() {
                 order.Id,           // A
                 orderDate,          // B
                 order.Source,       // C
@@ -142,10 +157,17 @@ namespace OrdersManager
                 order.ShippingAddress // X (Mới)
             };
 
-            valueRange.Values = new List<IList<object>> { objectList };
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{SheetName}!A:U");
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            appendRequest.Execute();
+                valueRange.Values = new List<IList<object>> { objectList };
+                var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{SheetName}!A:U");
+                appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+                appendRequest.Execute();
+
+                _logger.LogInformation("Đã THÊM đơn hàng mới: Mã={Code}, Khách={Customer}, SĐT={Phone}", order.Code, order.CustomerName, order.PhoneNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi THÊM đơn hàng Mã={Code}", order.Code);
+            }
         }
 
         // 3. Hàm Xóa (Delete)
