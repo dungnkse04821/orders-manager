@@ -162,7 +162,8 @@ namespace OrdersManager
                 appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
                 appendRequest.Execute();
 
-                _logger.LogInformation("Đã THÊM đơn hàng mới: Mã={Code}, Khách={Customer}, SĐT={Phone}", order.Code, order.CustomerName, order.PhoneNumber);
+                _logger.LogInformation("Đã THÊM đơn hàng mới: Mã={Code}, Khách={Customer}, SĐT={Phone}, SP={Product}, SL=x{Quantity}, Đơn giá={Price}",
+                    order.Code, order.CustomerName, order.PhoneNumber, order.ProductName, order.Quantity, order.SellingPrice);
             }
             catch (Exception ex)
             {
@@ -173,28 +174,40 @@ namespace OrdersManager
         // 3. Hàm Xóa (Delete)
         public void Delete(string id)
         {
-            int rowId = FindRowId(SheetName, id);
-            if (rowId == -1) return;
-
-            var requestBody = new BatchUpdateSpreadsheetRequest();
-            requestBody.Requests = new List<Request>();
-
-            requestBody.Requests.Add(new Request
+            try
             {
-                DeleteDimension = new DeleteDimensionRequest
+                int rowId = FindRowId(SheetName, id);
+                if (rowId == -1)
                 {
-                    Range = new DimensionRange
-                    {
-                        SheetId = 732019451,
-                        Dimension = "ROWS",
-                        StartIndex = rowId - 1, // API tính từ 0
-                        EndIndex = rowId        // API xóa range [Start, End)
-                    }
+                    _logger.LogWarning("Cảnh báo: Không tìm thấy đơn hàng ID={Id} để XÓA", id);
+                    return;
                 }
-            });
 
-            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
-            batchRequest.Execute();
+                var requestBody = new BatchUpdateSpreadsheetRequest();
+                requestBody.Requests = new List<Request>();
+
+                requestBody.Requests.Add(new Request
+                {
+                    DeleteDimension = new DeleteDimensionRequest
+                    {
+                        Range = new DimensionRange
+                        {
+                            SheetId = 732019451,
+                            Dimension = "ROWS",
+                            StartIndex = rowId - 1, // API tính từ 0
+                            EndIndex = rowId        // API xóa range [Start, End)
+                        }
+                    }
+                });
+
+                var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+                batchRequest.Execute();
+                _logger.LogInformation("Đã XÓA đơn hàng dòng {RowId}, ID={Id}", rowId, id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi XÓA đơn hàng ID={Id}", id);
+            }
         }
 
         // 1. Hàm tìm dòng dựa trên ID (Helper)
@@ -222,67 +235,48 @@ namespace OrdersManager
         // 2. Hàm Cập nhật (Update)
         public void Update(Order order)
         {
-            int rowId = FindRowId(SheetName, order.Id);
-            if (rowId == -1) return;
+            try
+            {
+                int rowId = FindRowId(SheetName, order.Id);
+                if (rowId == -1)
+                {
+                    _logger.LogWarning("Cảnh báo: Không tìm thấy đơn hàng ID={Id} để CẬP NHẬT", order.Id);
+                    return;
+                }
 
-            var range = $"{SheetName}!A{rowId}:X{rowId}";
+                var range = $"{SheetName}!A{rowId}:X{rowId}";
+                    
+                // Xử lý ngày tháng về string
+                string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
+                var phoneNumber = "'" + order.PhoneNumber;
 
-            // Xử lý ngày tháng về string
-            string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            string payDate = order.PaymentDate.HasValue ? order.PaymentDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
-            var phoneNumber = "'" + order.PhoneNumber;
-
-            // 1. Update Hàng hóa (A->K)
-            UpdateRange(rowId, "A", "K", new List<object> {
+                // 1. Update Hàng hóa (A->K)
+                UpdateRange(rowId, "A", "K", new List<object> {
                 order.Id, orderDate, order.Source, order.Warehouse, order.Code,
                 order.Category, order.ProductName, order.Color, order.Size,
                 order.SellingPrice, order.Quantity
-            });
-
-            // 2. Update Tài chính & Khách (M->O)
-            UpdateRange(rowId, "M", "O", new List<object> {
-                order.CustomerName, order.Deposit, order.Discount
-            });
-
-            // 3. Update SĐT & Địa chỉ (W->X) <--- QUAN TRỌNG
-            UpdateRange(rowId, "V", "X", new List<object> {
-                order.Status, phoneNumber, order.ShippingAddress
-            });
-
-
-            //var valueRange = new ValueRange();
-            //var objectList = new List<object>() {
-            //    order.Id,           // A
-            //    orderDate,          // B
-            //    order.Source,       // C
-            //    order.Warehouse,    // D
-            //    order.Code,         // E
-            //    order.Category,     // F
-            //    order.ProductName,  // G
-            //    order.Color,        // H
-            //    order.Size,         // I
-            //    order.SellingPrice, // J
-            //    order.Quantity,     // K
-            //    "=J:J*K:K",         // L (Formula: Giá * SL) - Google Sheet tự map dòng
-            //    order.CustomerName, // M
-            //    order.Deposit,      // N
-            //    order.Discount,     // O
-            //    "=L:L-N:N-O:O",     // P (Formula: Tổng - Cọc - CK)
-            //    arrDate,            // Q
-            //    payDate,            // R
-            //    order.ImportPrice,  // S
-            //    null,               // T (Tổng vốn - Để null)
-            //    null,               // U (Lãi - Để null)
-            //    order.Status,       // V
-            //    order.PhoneNumber,  // W (MỚI)
-            //    order.ShippingAddress // X (MỚI)
-            //};
-
-            //valueRange.Values = new List<IList<object>> { objectList };
-            //var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            //updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            //updateRequest.Execute();
+                });
+                _logger.LogInformation("Đã SỬA thông tin hàng hóa đơn hàng dòng {RowId}: Mã={Code}, Khách={Customer}, SP={Product}, SL=x{Quantity}, Đơn giá={Price}",
+                    rowId, order.Code, order.CustomerName, order.ProductName, order.Quantity, order.SellingPrice);
+                // 2. Update Tài chính & Khách (M->O)
+                UpdateRange(rowId, "M", "O", new List<object> {
+                    order.CustomerName, order.Deposit, order.Discount
+                });
+                _logger.LogInformation("Đã SỬA thông tin tài chính đơn hàng dòng {RowId}: Mã={Code}, Khách={Customer}, Đã trả={Deposit}, Ưu đãi={Discount}",
+                    rowId, order.Code, order.CustomerName, order.Deposit, order.Discount);
+                // 3. Update SĐT & Địa chỉ (W->X) <--- QUAN TRỌNG
+                UpdateRange(rowId, "V", "X", new List<object> {
+                    order.Status, phoneNumber, order.ShippingAddress
+                }); 
+                _logger.LogInformation("Đã SỬA thông tin KH của đơn hàng dòng {RowId}: Mã={Code}, Khách={Customer}, SĐT={PhoneNumber}, Địa chỉ={Address}, Trạng thái={Status}",
+                    rowId, order.Code, order.CustomerName, phoneNumber, order.ShippingAddress, order.Status);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi SỬA đơn hàng ID={Id}", order.Id);
+            }
         }
 
         private void UpdateRange(int rowId, string colStart, string colEnd, List<object> data)
