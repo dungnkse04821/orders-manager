@@ -245,7 +245,7 @@ namespace OrdersManager
                 }
 
                 var range = $"{SheetName}!A{rowId}:X{rowId}";
-                    
+
                 // Xử lý ngày tháng về string
                 string orderDate = order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
                 string arrDate = order.ArrivalDate.HasValue ? order.ArrivalDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : "";
@@ -269,7 +269,7 @@ namespace OrdersManager
                 // 3. Update SĐT & Địa chỉ (W->X) <--- QUAN TRỌNG
                 UpdateRange(rowId, "V", "X", new List<object> {
                     order.Status, phoneNumber, order.ShippingAddress
-                }); 
+                });
                 _logger.LogInformation("Đã SỬA thông tin KH của đơn hàng dòng {RowId}: Mã={Code}, Khách={Customer}, SĐT={PhoneNumber}, Địa chỉ={Address}, Trạng thái={Status}",
                     rowId, order.Code, order.CustomerName, phoneNumber, order.ShippingAddress, order.Status);
             }
@@ -350,11 +350,13 @@ namespace OrdersManager
         // 2. Hàm Thêm Khách Hàng (Create)
         public void AddCustomer(Customer customer)
         {
-            var valueRange = new ValueRange();
+            try
+            {
+                var valueRange = new ValueRange();
 
-            var phoneNumber = "'" + customer.PhoneNumber;
+                var phoneNumber = "'" + customer.PhoneNumber;
 
-            var objectList = new List<object>() {
+                var objectList = new List<object>() {
                                 customer.Id,
                                 customer.FullName,
                                 phoneNumber,
@@ -362,24 +364,36 @@ namespace OrdersManager
                                 customer.Address,
                                 customer.Note?? String.Empty
                             };
-            valueRange.Values = new List<IList<object>> { objectList };
+                valueRange.Values = new List<IList<object>> { objectList };
 
-            // Ghi vào sheet KhachHang
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "KhachHang!A:E");
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            appendRequest.Execute();
+                // Ghi vào sheet KhachHang
+                var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "KhachHang!A:E");
+                appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+                appendRequest.Execute();
+                _logger.LogInformation("Đã THÊM khách hàng: {Name} - SĐT: {Phone}", customer.FullName, customer.PhoneNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi THÊM khách hàng SĐT={Phone}", customer.PhoneNumber);
+            }
         }
 
         // 3. Hàm Sửa Khách Hàng (Update)
         public void UpdateCustomer(Customer customer)
         {
-            // Tìm dòng trong sheet KhachHang
-            int rowId = FindRowId("KhachHang", customer.Id);
-            if (rowId == -1) return;
-            var phoneNumber = "'" + customer.PhoneNumber;
-            var range = $"KhachHang!A{rowId}:E{rowId}";
-            var valueRange = new ValueRange();
-            var objectList = new List<object>() {
+            try
+            {
+                // Tìm dòng trong sheet KhachHang
+                int rowId = FindRowId("KhachHang", customer.Id);
+                if (rowId == -1)
+                {
+                    _logger.LogWarning("Không tìm thấy khách hàng ID={Id} để CẬP NHẬT", customer.Id);
+                    return;
+                }
+                var phoneNumber = "'" + customer.PhoneNumber;
+                var range = $"KhachHang!A{rowId}:E{rowId}";
+                var valueRange = new ValueRange();
+                var objectList = new List<object>() {
                                 customer.Id, // Giữ nguyên ID
                                 customer.FullName,
                                 phoneNumber,
@@ -387,38 +401,56 @@ namespace OrdersManager
                                 customer.Address,
                                 customer.Note?? String.Empty
                             };
-            valueRange.Values = new List<IList<object>> { objectList };
+                valueRange.Values = new List<IList<object>> { objectList };
 
-            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            updateRequest.Execute();
+                var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+                updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                updateRequest.Execute();
+                _logger.LogInformation("Đã SỬA khách hàng dòng {RowId}: {Name} - {Phone}", rowId, customer.FullName, customer.PhoneNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi SỬA khách hàng ID={Id}", customer.Id);
+            }
         }
 
         // 4. Hàm Xóa Khách Hàng (Delete)
         public void DeleteCustomer(string id)
         {
-            int rowId = FindRowId("KhachHang", id);
-            if (rowId == -1) return;
-
-            var requestBody = new BatchUpdateSpreadsheetRequest();
-            requestBody.Requests = new List<Request>();
-
-            requestBody.Requests.Add(new Request
+            try
             {
-                DeleteDimension = new DeleteDimensionRequest
+                int rowId = FindRowId("KhachHang", id);
+                if (rowId == -1)
                 {
-                    Range = new DimensionRange
-                    {
-                        SheetId = 2138276695,
-                        Dimension = "ROWS",
-                        StartIndex = rowId - 1,
-                        EndIndex = rowId
-                    }
+                    _logger.LogWarning("Không tìm thấy khách hàng ID={Id} để XÓA", id);
+                    return;
                 }
-            });
 
-            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
-            batchRequest.Execute();
+                var requestBody = new BatchUpdateSpreadsheetRequest();
+                requestBody.Requests = new List<Request>();
+
+                requestBody.Requests.Add(new Request
+                {
+                    DeleteDimension = new DeleteDimensionRequest
+                    {
+                        Range = new DimensionRange
+                        {
+                            SheetId = 2138276695,
+                            Dimension = "ROWS",
+                            StartIndex = rowId - 1,
+                            EndIndex = rowId
+                        }
+                    }
+                });
+
+                var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+                batchRequest.Execute();
+                _logger.LogInformation("Đã XÓA khách hàng dòng {RowId}, ID={Id}", rowId, id);   
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi XÓA khách hàng ID={Id}", id);
+            }
         }
 
         public Customer GetCustomerByPhone(string phone)
@@ -530,52 +562,65 @@ namespace OrdersManager
 
         public void BulkUpdateOrder(string id, string newStatus, DateTime? arrivalDate, decimal? importPrice, decimal? paidAmount)
         {
-            int rowId = FindRowId(SheetName, id);
-            if (rowId == -1) return;
-
-            // 1. Update Trạng thái (Cột V)
-            var rangeStatus = $"{SheetName}!V{rowId}";
-            var reqStatus = service.Spreadsheets.Values.Update(
-                new ValueRange { Values = new List<IList<object>> { new List<object> { newStatus } } },
-                SpreadsheetId, rangeStatus);
-            reqStatus.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            reqStatus.Execute();
-
-            // 2. Xử lý logic HÀNG VỀ (Cập nhật Ngày về & Giá vốn)
-            if (arrivalDate.HasValue)
+            try
             {
-                var reqDate = service.Spreadsheets.Values.Update(
-                    new ValueRange { Values = new List<IList<object>> { new List<object> { arrivalDate.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) } } },
-                    SpreadsheetId, $"{SheetName}!Q{rowId}");
-                reqDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                reqDate.Execute();
+                int rowId = FindRowId(SheetName, id);
+                if (rowId == -1)
+                {
+                    _logger.LogWarning("Bulk Update: Không tìm thấy đơn hàng ID={Id}", id);
+                    return;
+                }
+
+                // 1. Update Trạng thái (Cột V)
+                var rangeStatus = $"{SheetName}!V{rowId}";
+                var reqStatus = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { newStatus } } },
+                    SpreadsheetId, rangeStatus);
+                reqStatus.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqStatus.Execute();
+
+                // 2. Xử lý logic HÀNG VỀ (Cập nhật Ngày về & Giá vốn)
+                if (arrivalDate.HasValue)
+                {
+                    var reqDate = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { arrivalDate.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) } } },
+                        SpreadsheetId, $"{SheetName}!Q{rowId}");
+                    reqDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqDate.Execute();
+                }
+                if (importPrice.HasValue)
+                {
+                    var reqPrice = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { importPrice.Value } } },
+                        SpreadsheetId, $"{SheetName}!S{rowId}");
+                    reqPrice.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPrice.Execute();
+                }
+
+                // 3. Xử lý logic ĐÃ GIAO (Cập nhật Tiền đã trả & Ngày thanh toán)
+                if (newStatus == "Đã giao" && paidAmount.HasValue)
+                {
+                    // Cập nhật Cột N (Deposit/Đã thanh toán)
+                    var reqPaid = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { paidAmount.Value } } },
+                        SpreadsheetId, $"{SheetName}!N{rowId}");
+                    reqPaid.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPaid.Execute();
+
+                    // Cập nhật Cột R (Ngày thanh toán - PaymentDate) -> Set là hôm nay
+                    var today = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                    var reqPayDate = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { today } } },
+                        SpreadsheetId, $"{SheetName}!R{rowId}");
+                    reqPayDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPayDate.Execute();
+                }
+                _logger.LogInformation("Đã CẬP NHẬT TRẠNG THÁI đơn hàng dòng {RowId} -> {Status}. Giá nhập: {Import}, TT: {Paid}",
+                    rowId, newStatus, importPrice, paidAmount);
             }
-            if (importPrice.HasValue)
+            catch (Exception ex)
             {
-                var reqPrice = service.Spreadsheets.Values.Update(
-                    new ValueRange { Values = new List<IList<object>> { new List<object> { importPrice.Value } } },
-                    SpreadsheetId, $"{SheetName}!S{rowId}");
-                reqPrice.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                reqPrice.Execute();
-            }
-
-            // 3. Xử lý logic ĐÃ GIAO (Cập nhật Tiền đã trả & Ngày thanh toán)
-            if (newStatus == "Đã giao" && paidAmount.HasValue)
-            {
-                // Cập nhật Cột N (Deposit/Đã thanh toán)
-                var reqPaid = service.Spreadsheets.Values.Update(
-                    new ValueRange { Values = new List<IList<object>> { new List<object> { paidAmount.Value } } },
-                    SpreadsheetId, $"{SheetName}!N{rowId}");
-                reqPaid.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                reqPaid.Execute();
-
-                // Cập nhật Cột R (Ngày thanh toán - PaymentDate) -> Set là hôm nay
-                var today = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                var reqPayDate = service.Spreadsheets.Values.Update(
-                    new ValueRange { Values = new List<IList<object>> { new List<object> { today } } },
-                    SpreadsheetId, $"{SheetName}!R{rowId}");
-                reqPayDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                reqPayDate.Execute();
+                _logger.LogError(ex, "Lỗi khi Bulk Update đơn hàng ID={Id}", id);
             }
         }
     }
