@@ -445,7 +445,7 @@ namespace OrdersManager
 
                 var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
                 batchRequest.Execute();
-                _logger.LogInformation("Đã XÓA khách hàng dòng {RowId}, ID={Id}", rowId, id);   
+                _logger.LogInformation("Đã XÓA khách hàng dòng {RowId}, ID={Id}", rowId, id);
             }
             catch (Exception ex)
             {
@@ -490,75 +490,105 @@ namespace OrdersManager
 
         public void AddProduct(Product p)
         {
-            var valueRange = new ValueRange();
-            var objectList = new List<object>() {
-                p.Sku.ToUpper(),
-                p.Name,
-                p.Category,
-                p.ImportPrice,
-                p.SellingPrice,
-                p.Source,
-                p.Warehouse
-            };
-            valueRange.Values = new List<IList<object>> { objectList };
+            try
+            {
+                var valueRange = new ValueRange();
+                var objectList = new List<object>() {
+                    p.Sku.ToUpper(),
+                    p.Name,
+                    p.Category,
+                    p.ImportPrice,
+                    p.SellingPrice,
+                    p.Source,
+                    p.Warehouse
+                };
+                valueRange.Values = new List<IList<object>> { objectList };
 
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "SanPham!A:E");
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            appendRequest.Execute();
+                var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, "SanPham!A:E");
+                appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+                appendRequest.Execute();
+                _logger.LogInformation("Đã THÊM sản phẩm mới: SKU={SKU}, Tên={Name}", p.Sku, p.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi THÊM sản phẩm SKU={SKU}", p.Sku);
+            }
         }
 
         // 3. Cập nhật Sản phẩm
         public void UpdateProduct(Product p)
         {
-            int rowId = FindRowId("SanPham", p.Sku);
-            if (rowId == -1) return;
+            try
+            {
+                int rowId = FindRowId("SanPham", p.Sku);
+                if (rowId == -1)
+                {
+                    _logger.LogWarning("Không tìm thấy sản phẩm SKU={SKU} để CẬP NHẬT", p.Sku);
+                    return;
+                }
 
-            // Update từ cột B (Tên) đến E (Giá bán). Cột A (SKU) giữ nguyên để làm khóa.
-            var range = $"SanPham!B{rowId}:E{rowId}";
+                // Update từ cột B (Tên) đến E (Giá bán). Cột A (SKU) giữ nguyên để làm khóa.
+                var range = $"SanPham!B{rowId}:E{rowId}";
 
-            var valueRange = new ValueRange();
-            var objectList = new List<object>() {
-                p.Name,
-                p.Category,
-                p.ImportPrice,
-                p.SellingPrice,
-                p.Source,
-                p.Warehouse
-            };
-            valueRange.Values = new List<IList<object>> { objectList };
+                var valueRange = new ValueRange();
+                var objectList = new List<object>() {
+                    p.Name,
+                    p.Category,
+                    p.ImportPrice,
+                    p.SellingPrice,
+                    p.Source,
+                    p.Warehouse
+                };
+                valueRange.Values = new List<IList<object>> { objectList };
 
-            var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            updateRequest.Execute();
+                var updateRequest = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+                updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                updateRequest.Execute();
+                _logger.LogInformation("Đã SỬA sản phẩm dòng {RowId}: SKU={SKU}, Tên={Name}", rowId, p.Sku, p.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi SỬA sản phẩm SKU={SKU}", p.Sku);
+            }
         }
 
         // 4. Xóa Sản phẩm
         public void DeleteProduct(string sku)
         {
-            int rowId = FindRowId("SanPham", sku);
-            if (rowId == -1) return;
-
-            var requestBody = new BatchUpdateSpreadsheetRequest();
-            requestBody.Requests = new List<Request>();
-            requestBody.Requests.Add(new Request
+            try
             {
-                DeleteDimension = new DeleteDimensionRequest
+                int rowId = FindRowId("SanPham", sku);
+                if (rowId == -1)
                 {
-                    Range = new DimensionRange
-                    {
-                        SheetId = 309597087,
-                        Dimension = "ROWS",
-                        StartIndex = rowId - 1,
-                        EndIndex = rowId
-                    }
+                    _logger.LogWarning("Không tìm thấy sản phẩm SKU={SKU} để XÓA", sku);
+                    return;
                 }
-            });
 
-            var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
-            batchRequest.Execute();
+                var requestBody = new BatchUpdateSpreadsheetRequest();
+                requestBody.Requests = new List<Request>();
+                requestBody.Requests.Add(new Request
+                {
+                    DeleteDimension = new DeleteDimensionRequest
+                    {
+                        Range = new DimensionRange
+                        {
+                            SheetId = 309597087,
+                            Dimension = "ROWS",
+                            StartIndex = rowId - 1,
+                            EndIndex = rowId
+                        }
+                    }
+                });
+
+                var batchRequest = service.Spreadsheets.BatchUpdate(requestBody, SpreadsheetId);
+                batchRequest.Execute();
+                _logger.LogInformation("Đã XÓA sản phẩm dòng {RowId}, SKU={SKU}", rowId, sku);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi XÓA sản phẩm SKU={SKU}", sku);
+            }
         }
-
-        // Cập nhật hàm này trong GoogleSheetService.cs
 
         public void BulkUpdateOrder(string id, string newStatus, DateTime? arrivalDate, decimal? importPrice, decimal? paidAmount)
         {
