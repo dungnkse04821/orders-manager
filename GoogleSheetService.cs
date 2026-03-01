@@ -43,23 +43,39 @@ namespace OrdersManager
             }
         }
 
-        private decimal ParseDecimal(object value)
+        public List<string> GetConfigData(string sheetName)
         {
-            if (value == null) return 0;
-            // Xử lý chuỗi kiểu "1.000" hoặc "1,000" tùy locale
-            string s = value.ToString().Replace(".", "").Replace(",", "");
-            if (decimal.TryParse(s, out decimal result)) return result;
-            return 0;
+            var range = $"{sheetName}!A2:A"; // Chỉ đọc cột A
+            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
+            var response = request.Execute();
+            var values = response.Values;
+
+            var list = new List<string>();
+            if (values != null && values.Count > 0)
+            {
+                foreach (var row in values)
+                {
+                    if (row.Count > 0) list.Add(row[0].ToString());
+                }
+            }
+            return list;
         }
 
-        private DateTime? ParseDate(object value)
+        public void AddConfigData(string sheetName, string value)
         {
-            if (value == null) return null;
-            if (DateTime.TryParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-                return result;
-            return null;
+            var valueRange = new ValueRange();
+            valueRange.Values = new List<IList<object>> { new List<object> { value } };
+
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{sheetName}!A:A");
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            appendRequest.Execute();
+            _logger.LogInformation("Đã THÊM cấu hình vào {Sheet}: {Value}", sheetName, value);
         }
 
+        #region Orders
+        // ==========================================
+        // QUẢN LÝ ĐƠN HÀNG (ORDERS)
+        // ==========================================
         public List<Order> GetAll()
         {
             var range = $"{SheetName}!A:X";
@@ -210,28 +226,6 @@ namespace OrdersManager
             }
         }
 
-        // 1. Hàm tìm dòng dựa trên ID (Helper)
-        private int FindRowId(string sheetName, string id)
-        {
-            var range = $"{sheetName}!A:A"; // Đọc cột A của sheet được truyền vào
-            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
-            var response = request.Execute();
-            var values = response.Values;
-
-            if (values != null)
-            {
-                for (int i = 0; i < values.Count; i++)
-                {
-                    // Kiểm tra ID khớp (Bỏ qua dòng header nếu cần)
-                    if (values[i].Count > 0 && values[i][0].ToString() == id)
-                    {
-                        return i + 1; // Row index trong Sheet bắt đầu từ 1
-                    }
-                }
-            }
-            return -1;
-        }
-
         // 2. Hàm Cập nhật (Update)
         public void Update(Order order)
         {
@@ -279,45 +273,75 @@ namespace OrdersManager
             }
         }
 
-        private void UpdateRange(int rowId, string colStart, string colEnd, List<object> data)
+        public void BulkUpdateOrder(string id, string newStatus, DateTime? arrivalDate, decimal? importPrice, decimal? paidAmount)
         {
-            var range = $"{SheetName}!{colStart}{rowId}:{colEnd}{rowId}";
-            var valueRange = new ValueRange { Values = new List<IList<object>> { data } };
-            var request = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
-            request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            request.Execute();
-        }
-
-        // 1. Hàm dùng chung để đọc 1 cột dữ liệu
-        public List<string> GetConfigData(string sheetName)
-        {
-            var range = $"{sheetName}!A2:A"; // Chỉ đọc cột A
-            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
-            var response = request.Execute();
-            var values = response.Values;
-
-            var list = new List<string>();
-            if (values != null && values.Count > 0)
+            try
             {
-                foreach (var row in values)
+                int rowId = FindRowId(SheetName, id);
+                if (rowId == -1)
                 {
-                    if (row.Count > 0) list.Add(row[0].ToString());
+                    _logger.LogWarning("Bulk Update: Không tìm thấy đơn hàng ID={Id}", id);
+                    return;
                 }
+
+                // 1. Update Trạng thái (Cột V)
+                var rangeStatus = $"{SheetName}!V{rowId}";
+                var reqStatus = service.Spreadsheets.Values.Update(
+                    new ValueRange { Values = new List<IList<object>> { new List<object> { newStatus } } },
+                    SpreadsheetId, rangeStatus);
+                reqStatus.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                reqStatus.Execute();
+
+                // 2. Xử lý logic HÀNG VỀ (Cập nhật Ngày về & Giá vốn)
+                if (arrivalDate.HasValue)
+                {
+                    var reqDate = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { arrivalDate.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) } } },
+                        SpreadsheetId, $"{SheetName}!Q{rowId}");
+                    reqDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqDate.Execute();
+                }
+                if (importPrice.HasValue)
+                {
+                    var reqPrice = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { importPrice.Value } } },
+                        SpreadsheetId, $"{SheetName}!S{rowId}");
+                    reqPrice.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPrice.Execute();
+                }
+
+                // 3. Xử lý logic ĐÃ GIAO (Cập nhật Tiền đã trả & Ngày thanh toán)
+                if (newStatus == "Đã giao" && paidAmount.HasValue)
+                {
+                    // Cập nhật Cột N (Deposit/Đã thanh toán)
+                    var reqPaid = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { paidAmount.Value } } },
+                        SpreadsheetId, $"{SheetName}!N{rowId}");
+                    reqPaid.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPaid.Execute();
+
+                    // Cập nhật Cột R (Ngày thanh toán - PaymentDate) -> Set là hôm nay
+                    var today = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                    var reqPayDate = service.Spreadsheets.Values.Update(
+                        new ValueRange { Values = new List<IList<object>> { new List<object> { today } } },
+                        SpreadsheetId, $"{SheetName}!R{rowId}");
+                    reqPayDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    reqPayDate.Execute();
+                }
+                _logger.LogInformation("Đã CẬP NHẬT TRẠNG THÁI đơn hàng dòng {RowId} -> {Status}. Giá nhập: {Import}, TT: {Paid}",
+                    rowId, newStatus, importPrice, paidAmount);
             }
-            return list;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi Bulk Update đơn hàng ID={Id}", id);
+            }
         }
+        #endregion
 
-        // 2. Hàm dùng chung để thêm dữ liệu mới vào cột A
-        public void AddConfigData(string sheetName, string value)
-        {
-            var valueRange = new ValueRange();
-            valueRange.Values = new List<IList<object>> { new List<object> { value } };
-
-            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{sheetName}!A:A");
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            appendRequest.Execute();
-        }
-
+        #region Customers
+        // ==========================================
+        // QUẢN LÝ KHÁCH HÀNG (CUSTOMERS)
+        // ==========================================
         public List<Customer> GetCustomers()
         {
             var range = "KhachHang!A:F";
@@ -458,7 +482,12 @@ namespace OrdersManager
             var customers = GetCustomers();
             return customers.FirstOrDefault(c => c.PhoneNumber == phone);
         }
+        #endregion
 
+        #region Products
+        // ==========================================
+        // QUẢN LÝ SẢN PHẨM (PRODUCTS)
+        // ==========================================
         public List<Product> GetProducts()
         {
             var range = "SanPham!A:G";
@@ -589,69 +618,59 @@ namespace OrdersManager
                 _logger.LogError(ex, "Lỗi khi XÓA sản phẩm SKU={SKU}", sku);
             }
         }
+        #endregion
 
-        public void BulkUpdateOrder(string id, string newStatus, DateTime? arrivalDate, decimal? importPrice, decimal? paidAmount)
+        #region helper
+        // ==========================================
+        // CÁC HÀM HELPER KHÁC
+        // ==========================================
+        // 1. Hàm tìm dòng dựa trên ID (Helper)
+        private int FindRowId(string sheetName, string id)
         {
-            try
+            var range = $"{sheetName}!A:A"; // Đọc cột A của sheet được truyền vào
+            var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
+            var response = request.Execute();
+            var values = response.Values;
+
+            if (values != null)
             {
-                int rowId = FindRowId(SheetName, id);
-                if (rowId == -1)
+                for (int i = 0; i < values.Count; i++)
                 {
-                    _logger.LogWarning("Bulk Update: Không tìm thấy đơn hàng ID={Id}", id);
-                    return;
+                    // Kiểm tra ID khớp (Bỏ qua dòng header nếu cần)
+                    if (values[i].Count > 0 && values[i][0].ToString() == id)
+                    {
+                        return i + 1; // Row index trong Sheet bắt đầu từ 1
+                    }
                 }
-
-                // 1. Update Trạng thái (Cột V)
-                var rangeStatus = $"{SheetName}!V{rowId}";
-                var reqStatus = service.Spreadsheets.Values.Update(
-                    new ValueRange { Values = new List<IList<object>> { new List<object> { newStatus } } },
-                    SpreadsheetId, rangeStatus);
-                reqStatus.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                reqStatus.Execute();
-
-                // 2. Xử lý logic HÀNG VỀ (Cập nhật Ngày về & Giá vốn)
-                if (arrivalDate.HasValue)
-                {
-                    var reqDate = service.Spreadsheets.Values.Update(
-                        new ValueRange { Values = new List<IList<object>> { new List<object> { arrivalDate.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) } } },
-                        SpreadsheetId, $"{SheetName}!Q{rowId}");
-                    reqDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                    reqDate.Execute();
-                }
-                if (importPrice.HasValue)
-                {
-                    var reqPrice = service.Spreadsheets.Values.Update(
-                        new ValueRange { Values = new List<IList<object>> { new List<object> { importPrice.Value } } },
-                        SpreadsheetId, $"{SheetName}!S{rowId}");
-                    reqPrice.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                    reqPrice.Execute();
-                }
-
-                // 3. Xử lý logic ĐÃ GIAO (Cập nhật Tiền đã trả & Ngày thanh toán)
-                if (newStatus == "Đã giao" && paidAmount.HasValue)
-                {
-                    // Cập nhật Cột N (Deposit/Đã thanh toán)
-                    var reqPaid = service.Spreadsheets.Values.Update(
-                        new ValueRange { Values = new List<IList<object>> { new List<object> { paidAmount.Value } } },
-                        SpreadsheetId, $"{SheetName}!N{rowId}");
-                    reqPaid.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                    reqPaid.Execute();
-
-                    // Cập nhật Cột R (Ngày thanh toán - PaymentDate) -> Set là hôm nay
-                    var today = DateTime.Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                    var reqPayDate = service.Spreadsheets.Values.Update(
-                        new ValueRange { Values = new List<IList<object>> { new List<object> { today } } },
-                        SpreadsheetId, $"{SheetName}!R{rowId}");
-                    reqPayDate.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-                    reqPayDate.Execute();
-                }
-                _logger.LogInformation("Đã CẬP NHẬT TRẠNG THÁI đơn hàng dòng {RowId} -> {Status}. Giá nhập: {Import}, TT: {Paid}",
-                    rowId, newStatus, importPrice, paidAmount);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi Bulk Update đơn hàng ID={Id}", id);
-            }
+            return -1;
         }
+
+        private void UpdateRange(int rowId, string colStart, string colEnd, List<object> data)
+        {
+            var range = $"{SheetName}!{colStart}{rowId}:{colEnd}{rowId}";
+            var valueRange = new ValueRange { Values = new List<IList<object>> { data } };
+            var request = service.Spreadsheets.Values.Update(valueRange, SpreadsheetId, range);
+            request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            request.Execute();
+        }
+
+        private decimal ParseDecimal(object value)
+        {
+            if (value == null) return 0;
+            // Xử lý chuỗi kiểu "1.000" hoặc "1,000" tùy locale
+            string s = value.ToString().Replace(".", "").Replace(",", "");
+            if (decimal.TryParse(s, out decimal result)) return result;
+            return 0;
+        }
+
+        private DateTime? ParseDate(object value)
+        {
+            if (value == null) return null;
+            if (DateTime.TryParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                return result;
+            return null;
+        }
+        #endregion
     }
 }
