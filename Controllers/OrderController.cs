@@ -7,10 +7,11 @@ namespace OrdersManager.Controllers
     public class OrderController : Controller
     {
         private readonly GoogleSheetService _service;
-
-        public OrderController()
+        private readonly ILogger<GoogleSheetService> _logger;
+        public OrderController(ILogger<GoogleSheetService> logger)
         {
-            _service = new GoogleSheetService();
+            _logger = logger;
+            _service = new GoogleSheetService(_logger);
         }
 
         private void PopulateDropdowns()
