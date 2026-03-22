@@ -557,7 +557,7 @@ namespace OrdersManager
                 }
 
                 // Update từ cột B (Tên) đến E (Giá bán). Cột A (SKU) giữ nguyên để làm khóa.
-                var range = $"SanPham!B{rowId}:E{rowId}";
+                var range = $"SanPham!B{rowId}:G{rowId}";
 
                 var valueRange = new ValueRange();
                 var objectList = new List<object>() {
