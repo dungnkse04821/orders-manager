@@ -108,7 +108,7 @@
                         <div class="col-md-6 mb-3">
                             <label asp-for="Order.SellingPrice" class="form-label">Giá bán</label>
                             <div class="input-group">
-                                <input asp-for="Order.SellingPrice" class="form-control fw-bold text-primary fs-5" type="number" id="txtSellPrice" />
+                                <input asp-for="Order.SellingPrice" class="form-control fw-bold text-primary fs-5" type="number" step="any" id="txtSellPrice" />
                                 <span class="input-group-text">.000 đ</span>
                             </div>
                         </div>
@@ -121,14 +121,14 @@
                         <div class="col-md-6 mb-3">
                             <label asp-for="Order.Deposit" class="form-label">Đã cọc/Thanh toán</label>
                             <div class="input-group">
-                                <input asp-for="Order.Deposit" class="form-control" type="number" />
+                                <input asp-for="Order.Deposit" class="form-control" type="number" step="any" />
                                 <span class="input-group-text">.000 đ</span>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="Order.Discount" class="form-label">Giảm giá</label>
                             <div class="input-group">
-                                <input asp-for="Order.Discount" class="form-control" type="number" />
+                                <input asp-for="Order.Discount" class="form-control" type="number" step="any" />
                                 <span class="input-group-text">.000 đ</span>
                             </div>
                         </div>
