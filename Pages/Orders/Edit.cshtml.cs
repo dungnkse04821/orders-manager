@@ -93,7 +93,10 @@ namespace OrdersManager.Pages.Orders
                 }
             }
             // ------------------------------------
-
+            Order.SellingPrice = Order.SellingPrice * 1000;
+            Order.ImportPrice = Order.ImportPrice * 1000;
+            Order.Discount = Order.Discount * 1000;
+            Order.Deposit = Order.Deposit * 1000;
             _service.Update(Order);
             return RedirectToPage("./Index");
         }
